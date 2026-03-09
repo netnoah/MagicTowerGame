@@ -14,6 +14,8 @@ from config import WindowConfig, GameState
 from engine.display import DisplayManager
 from engine.input import InputHandler, KeyAction, create_default_bindings
 from engine.state_machine import GameStateMachine
+from systems.floor_manager import FloorManager
+from entities.player import Player
 
 
 @dataclass
@@ -66,6 +68,9 @@ class Game:
         # 游戏数据（将在其他模块中初始化）
         self._player: Optional[Any] = None
         self._current_floor: Optional[Any] = None
+
+        # 地图系统
+        self._floor_manager: Optional[FloorManager] = None
 
         # 设置默认按键绑定
         self._setup_default_bindings()
@@ -212,7 +217,9 @@ class Game:
 
     def _update_playing(self) -> None:
         """更新游戏进行中状态"""
-        pass
+        # 更新玩家
+        if self._player:
+            self._player.update(self._time.delta_time)
 
     def _update_menu(self) -> None:
         """更新菜单状态"""
@@ -240,10 +247,26 @@ class Game:
 
     def _render_playing(self) -> None:
         """渲染游戏进行中状态"""
+        # 渲染地图
+        offset = (0, 0)
+        if self._floor_manager:
+            offset = self._floor_manager.calculate_render_offset(
+                self._display.width, self._display.height
+            )
+            self._floor_manager.render(self._display.render_surface, offset)
+
+        # 渲染玩家
+        if self._player:
+            self._player.render(self._display.render_surface, offset)
+
+        # 显示调试信息
+        floor_text = f"Floor {self._floor_manager.current_level if self._floor_manager else 1}"
+        if self._player:
+            floor_text += f" | HP: {self._player.stats.hp}"
         self._display.draw_text(
-            "Game Running - Press ESC to pause",
-            self._display.get_center(),
-            font_size=24
+            floor_text,
+            (10, 10),
+            font_size=16
         )
 
     def _render_menu(self) -> None:
@@ -337,9 +360,8 @@ class Game:
         if self._state_machine.current_state != GameState.PLAYING:
             return
 
-        if self._player:
-            # TODO: 实现玩家移动
-            pass
+        if self._player and self._floor_manager:
+            self._player.move(direction, self._floor_manager)
 
     def toggle_pause(self) -> None:
         """切换暂停状态"""
@@ -408,6 +430,18 @@ class Game:
     def _on_enter_playing(self) -> None:
         """进入游戏进行中状态"""
         self._input.enable()
+
+        # 初始化地图系统
+        if self._floor_manager is None:
+            self._floor_manager = FloorManager()
+            self._floor_manager.load_tiles()
+            self._floor_manager.load_floor(1)
+
+        # 初始化玩家
+        if self._player is None and self._floor_manager:
+            start_pos = self._floor_manager.get_player_start()
+            self._player = Player(start_pos[0], start_pos[1])
+            self._player.load_resources()
 
     def _on_enter_paused(self) -> None:
         """进入暂停状态"""

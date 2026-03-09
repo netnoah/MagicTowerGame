@@ -142,6 +142,12 @@ class ResourceLoader:
         """
         加载单个动画的所有帧，并生成四个方向
 
+        方向生成（使用翻转而非旋转）：
+        - RIGHT: 原图
+        - LEFT: 水平翻转
+        - UP: 和 RIGHT 一样（原图）
+        - DOWN: 和 LEFT 一样（水平翻转）
+
         Args:
             anim_name: 动画名称
             files: [(帧序号, 文件路径), ...]
@@ -160,17 +166,13 @@ class ResourceLoader:
             # 加载原始图片
             original = pygame.image.load(str(file_path)).convert_alpha()
 
-            # 生成四个方向
+            # 生成四个方向（使用翻转）
+            flipped = pygame.transform.flip(original, True, False)  # 水平翻转
+
             frames_by_direction[Direction.RIGHT].append(original)
-            frames_by_direction[Direction.UP].append(
-                pygame.transform.rotate(original, 90)
-            )
-            frames_by_direction[Direction.LEFT].append(
-                pygame.transform.rotate(original, 180)
-            )
-            frames_by_direction[Direction.DOWN].append(
-                pygame.transform.rotate(original, 270)
-            )
+            frames_by_direction[Direction.UP].append(original)  # 上和右一样
+            frames_by_direction[Direction.LEFT].append(flipped)
+            frames_by_direction[Direction.DOWN].append(flipped)  # 下和左一样
 
         return AnimationData(
             name=anim_name,

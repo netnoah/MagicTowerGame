@@ -9,11 +9,15 @@ import sys
 import os
 
 # 设置项目路径
-project_root = os.path.dirname(os.path.abspath())
+project_root = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, project_root)
 
 from systems.tile import TileManager
 from systems.floor_manager import FloorManager
+
+# 初始化 pygame
+pygame.init()
+pygame.display.set_mode((800, 600))
 
 print("Loading tiles...")
 tile_manager = TileManager()
@@ -38,6 +42,9 @@ if success:
     floor_manager.render(screen, offset)
 
     print("Map rendered! Press ESC to close.")
+
+    # 更新屏幕显示
+    pygame.display.flip()
 
     # 保持窗口开一会儿
     pygame.time.delay(2000)

@@ -11,8 +11,8 @@ walk_1.png
 attack_0.png    # 攻击动画
 attack_1.png
 ...
-idle_0.png      # 待机动画
-idle_1.png
+stat_0.png      # 待机动画
+stat_1.png
 ...
 ```
 

@@ -39,6 +39,11 @@ class PlayerConfig:
     INITIAL_KEYS: Tuple[int, int, int] = (0, 0, 0)  # (yellow, blue, red)
     MOVE_SPEED: float = 0.15  # 移动动画持续时间（秒）
 
+    # 玩家图片的 pivot 偏移（脚部位置相对于图片左上角）
+    # 用于将玩家脚部对齐到瓦片位置
+    SPRITE_PIVOT_X: int = 256  # 脚部在图片中的 X 坐标
+    SPRITE_PIVOT_Y: int = 480  # 脚部在图片中的 Y 坐标
+
 
 @dataclass(frozen=True)
 class PathConfig:

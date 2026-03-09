@@ -6,8 +6,8 @@
 
 ## 当前状态
 
-**当前阶段**: Phase 2 - 地图系统
-**下一步**: 实现瓦片系统和楼层管理
+**当前阶段**: Phase 3 - 战斗系统
+**下一步**: 实现怪物实体和战斗逻辑
 
 ---
 
@@ -24,13 +24,42 @@
 
 ---
 
-## Phase 2: 地图系统 ⏳ 待完成
+## Phase 2: 地图系统 ✅ 已完成
 
-- [ ] 2.1 瓦片系统 (`systems/tile.py`)
-- [ ] 2.2 楼层管理 (`systems/floor_manager.py`)
-- [ ] 2.3 碰撞检测 (`systems/collision.py`)
-- [ ] 2.4 地图数据格式 (JSON)
-- [ ] 2.5 创建第一层测试地图
+- [x] 2.1 瓦片系统 (`systems/tile.py`)
+- [x] 2.2 楼层管理 (`systems/floor_manager.py`)
+- [x] 2.3 地图数据格式 (JSON)
+- [x] 2.4 创建第一层测试地图 (`data/maps/floor_01.json`)
+- [x] 2.5 集成地图到主游戏 (`engine/game.py`)
+- [x] 2.6 碰撞检测（集成在 FloorManager.is_walkable）
+
+---
+
+## Phase 3: 战斗系统 ⏳ 进行中
+
+- [x] 3.1 玩家实体 (`entities/player.py`)
+  - [x] 属性系统 (HP/攻击/防御/金币/钥匙)
+  - [x] 移动系统 (平滑移动/方向控制)
+  - [x] 碰撞检测 (与地图瓦片)
+  - [x] 动画渲染 (stat/walk/attack)
+  - [x] 方向翻转 (左/右使用水平翻转)
+  - [x] Pivot 对齐 (脚部对齐瓦片位置，可配置)
+- [ ] 3.2 怪物实体 (`entities/monster.py`)
+- [ ] 3.3 战斗逻辑 (`systems/combat.py`)
+- [ ] 3.4 怪物数据定义 (`data/entities/monsters.json`)
+
+---
+
+## 配置说明
+
+### 玩家 Pivot 配置 (`config.py`)
+
+```python
+SPRITE_PIVOT_X: int = 256  # 脚部在图片中的 X 坐标
+SPRITE_PIVOT_Y: int = 480  # 脚部在图片中的 Y 坐标
+```
+
+用于将玩家脚部对齐到瓦片位置，根据实际图片调整这两个值。
 
 ---
 
