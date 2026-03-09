@@ -6,55 +6,25 @@
 
 ## 当前状态
 
-**当前阶段**: Phase 1 - 基础框架
-**下一步**: 创建游戏入口和主循环
+**当前阶段**: Phase 2 - 地图系统
+**下一步**: 实现瓦片系统和楼层管理
 
 ---
 
-## Phase 1: 基础框架
+## Phase 1: 基础框架 ✅ 已完成
 
-### ✅ 已完成
 - [x] 1.1 资源加载器 (`systems/resource_loader.py`)
-  - 自动扫描文件夹加载动画帧
-  - 按命名规则解析动画 (walk_0, walk_1, ...)
-  - 自动旋转生成四个方向 (RIGHT/UP/LEFT/DOWN)
 - [x] 1.2 动画播放系统 (`systems/animation.py`)
-  - AnimationPlayer 类
-  - 支持循环/单次播放
-  - 帧率控制
-  - 方向切换
-
-### ⏳ 待完成
-- [ ] 1.3 全局配置 (`config.py`)
-  - 窗口尺寸
-  - 瓦片大小
-  - 游戏常量
-
-- [ ] 1.4 游戏入口 (`main.py`)
-  - Pygame 初始化
-  - 游戏循环
-  - FPS 控制
-
-- [ ] 1.5 游戏引擎 (`engine/game.py`)
-  - Game 类
-  - 状态管理
-  - 场景切换
-
-- [ ] 1.6 显示管理 (`engine/display.py`)
-  - 窗口创建
-  - 渲染逻辑
-  - 相机系统
-
-- [ ] 1.7 输入处理 (`engine/input.py`)
-  - 键盘事件
-  - 按键映射
-
-- [ ] 1.8 状态机 (`engine/state_machine.py`)
-  - MENU / PLAYING / PAUSED / GAME_OVER
+- [x] 1.3 全局配置 (`config.py`)
+- [x] 1.4 游戏入口 (`main.py`)
+- [x] 1.5 游戏引擎 (`engine/game.py`)
+- [x] 1.6 显示管理 (`engine/display.py`)
+- [x] 1.7 输入处理 (`engine/input.py`)
+- [x] 1.8 状态机 (`engine/state_machine.py`)
 
 ---
 
-## Phase 2: 地图系统
+## Phase 2: 地图系统 ⏳ 待完成
 
 - [ ] 2.1 瓦片系统 (`systems/tile.py`)
 - [ ] 2.2 楼层管理 (`systems/floor_manager.py`)
