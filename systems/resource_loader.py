@@ -22,6 +22,8 @@ from enum import Enum
 import pygame
 from pygame.surface import Surface
 
+from config import TILE
+
 
 class Direction(Enum):
     """四个方向"""
@@ -142,6 +144,8 @@ class ResourceLoader:
         """
         加载单个动画的所有帧，并生成四个方向
 
+        图片会缩放到一个 tile 大小内，保持宽高比
+
         方向生成（使用翻转而非旋转）：
         - RIGHT: 原图
         - LEFT: 水平翻转
@@ -166,11 +170,14 @@ class ResourceLoader:
             # 加载原始图片
             original = pygame.image.load(str(file_path)).convert_alpha()
 
-            # 生成四个方向（使用翻转）
-            flipped = pygame.transform.flip(original, True, False)  # 水平翻转
+            # 缩放到 tile 大小内，保持宽高比
+            scaled = self._scale_to_tile(original)
 
-            frames_by_direction[Direction.RIGHT].append(original)
-            frames_by_direction[Direction.UP].append(original)  # 上和右一样
+            # 生成四个方向（使用翻转）
+            flipped = pygame.transform.flip(scaled, True, False)  # 水平翻转
+
+            frames_by_direction[Direction.RIGHT].append(scaled)
+            frames_by_direction[Direction.UP].append(scaled)  # 上和右一样
             frames_by_direction[Direction.LEFT].append(flipped)
             frames_by_direction[Direction.DOWN].append(flipped)  # 下和左一样
 
@@ -180,9 +187,36 @@ class ResourceLoader:
             frame_count=len(files)
         )
 
+    def _scale_to_tile(self, surface: Surface, tile_multiplier: float = 1.5) -> Surface:
+        """
+        将图片缩放到指定 tile 倍数大小内，保持宽高比
+
+        Args:
+            surface: 原始图片
+            tile_multiplier: tile 大小倍数，默认 1.5
+
+        Returns:
+            缩放后的图片
+        """
+        orig_width, orig_height = surface.get_size()
+        max_size = int(TILE.SIZE * tile_multiplier)
+
+        # 计算缩放比例，确保不超过目标大小
+        scale_x = max_size / orig_width
+        scale_y = max_size / orig_height
+        scale = min(scale_x, scale_y)
+
+        # 计算新尺寸
+        new_width = int(orig_width * scale)
+        new_height = int(orig_height * scale)
+
+        return pygame.transform.scale(surface, (new_width, new_height))
+
     def load_single_sprite(self, entity_name: str, sprite_name: str) -> Dict[Direction, Surface]:
         """
         加载单个精灵图片（非动画），生成四个方向
+
+        图片会缩放到一个 tile 大小内，保持宽高比
 
         Args:
             entity_name: 实体/文件夹名称
@@ -198,11 +232,13 @@ class ResourceLoader:
             file_path = entity_path / f"{sprite_name}{ext}"
             if file_path.exists():
                 original = pygame.image.load(str(file_path)).convert_alpha()
+                # 缩放到 tile 大小
+                scaled = self._scale_to_tile(original)
                 return {
-                    Direction.RIGHT: original,
-                    Direction.UP: pygame.transform.rotate(original, 90),
-                    Direction.LEFT: pygame.transform.rotate(original, 180),
-                    Direction.DOWN: pygame.transform.rotate(original, 270),
+                    Direction.RIGHT: scaled,
+                    Direction.UP: pygame.transform.rotate(scaled, 90),
+                    Direction.LEFT: pygame.transform.rotate(scaled, 180),
+                    Direction.DOWN: pygame.transform.rotate(scaled, 270),
                 }
 
         raise FileNotFoundError(f"Sprite not found: {entity_path / sprite_name}")

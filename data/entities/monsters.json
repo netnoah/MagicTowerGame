@@ -1,0 +1,104 @@
+{
+  "monsters": {
+    "slime_green": {
+      "name": "Green Slime",
+      "name_cn": "绿史莱姆",
+      "hp": 50,
+      "attack": 20,
+      "defense": 1,
+      "gold": 1,
+      "experience": 1,
+      "sprite": "slime_green"
+    },
+    "slime_red": {
+      "name": "Red Slime",
+      "name_cn": "红史莱姆",
+      "hp": 70,
+      "attack": 30,
+      "defense": 3,
+      "gold": 2,
+      "experience": 2,
+      "sprite": "slime_red"
+    },
+    "bat": {
+      "name": "Bat",
+      "name_cn": "蝙蝠",
+      "hp": 35,
+      "attack": 25,
+      "defense": 0,
+      "gold": 1,
+      "experience": 1,
+      "sprite": "bat"
+    },
+    "skeleton": {
+      "name": "Skeleton",
+      "name_cn": "骷髅",
+      "hp": 80,
+      "attack": 40,
+      "defense": 5,
+      "gold": 5,
+      "experience": 5,
+      "sprite": "skeleton"
+    },
+    "ghost": {
+      "name": "Ghost",
+      "name_cn": "幽灵",
+      "hp": 120,
+      "attack": 55,
+      "defense": 8,
+      "gold": 8,
+      "experience": 8,
+      "sprite": "ghost"
+    },
+    "orc": {
+      "name": "Orc",
+      "name_cn": "兽人",
+      "hp": 200,
+      "attack": 80,
+      "defense": 15,
+      "gold": 15,
+      "experience": 15,
+      "sprite": "orc"
+    },
+    "wizard": {
+      "name": "Wizard",
+      "name_cn": "法师",
+      "hp": 150,
+      "attack": 100,
+      "defense": 5,
+      "gold": 20,
+      "experience": 20,
+      "sprite": "wizard"
+    },
+    "knight": {
+      "name": "Dark Knight",
+      "name_cn": "黑暗骑士",
+      "hp": 300,
+      "attack": 120,
+      "defense": 30,
+      "gold": 30,
+      "experience": 30,
+      "sprite": "knight"
+    },
+    "dragon_baby": {
+      "name": "Baby Dragon",
+      "name_cn": "幼龙",
+      "hp": 500,
+      "attack": 200,
+      "defense": 50,
+      "gold": 100,
+      "experience": 100,
+      "sprite": "dragon"
+    },
+    "demon_lord": {
+      "name": "Demon Lord",
+      "name_cn": "魔王",
+      "hp": 2000,
+      "attack": 500,
+      "defense": 100,
+      "gold": 500,
+      "experience": 500,
+      "sprite": "demon"
+    }
+  }
+}

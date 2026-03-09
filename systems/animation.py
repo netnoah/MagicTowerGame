@@ -204,6 +204,16 @@ class AnimationPlayer:
             return frame.get_size()
         return (0, 0)
 
+    def get_pivot(self) -> tuple:
+        """
+        获取当前帧的 pivot 点（底部中部）
+
+        Returns:
+            (pivot_x, pivot_y) 相对于图片左上角的偏移
+        """
+        width, height = self.get_frame_size()
+        return (width // 2, height)
+
     def get_animation_names(self) -> list:
         """获取所有动画名称"""
         return list(self.animations.keys())

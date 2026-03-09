@@ -17,6 +17,7 @@ from systems.tile import (
     TileType, TileManager, TileProperties,
     tile_coords_to_pixels
 )
+from entities.monster import Monster, MonsterManager
 
 
 @dataclass
@@ -99,6 +100,12 @@ class FloorManager:
         # 渲染偏移（用于居中地图）
         self._render_offset: Tuple[int, int] = (0, 0)
 
+        # 怪物管理
+        self._monster_manager = MonsterManager()
+        self._monster_manager.load_monster_data("data/entities/monsters.json")
+        self._monsters: Dict[int, List[Monster]] = {}  # {楼层: [怪物列表]}
+        self._monsters_cache: Dict[Tuple[int, int, int], Monster] = {}  # {(楼层, x, y): Monster}
+
     def load_tiles(self) -> None:
         """加载瓦片资源"""
         self._tile_manager.load_tiles()
@@ -132,6 +139,10 @@ class FloorManager:
             self._floor_cache[level] = floor_data
             self._current_floor = floor_data
             self._current_level = level
+
+            # 加载该楼层的怪物
+            self._load_floor_monsters(level, floor_data.entities)
+
             return True
 
         return False
@@ -381,3 +392,78 @@ class FloorManager:
         if self._current_floor:
             return self._current_floor.height
         return 0
+
+    # ============================================================
+    # 怪物管理
+    # ============================================================
+
+    def _load_floor_monsters(self, level: int, entities: List[EntityPlacement]) -> None:
+        """
+        加载楼层怪物
+
+        Args:
+            level: 楼层编号
+            entities: 实体列表
+        """
+        if level in self._monsters:
+            return  # 已加载
+
+        monsters = []
+        for entity in entities:
+            if entity.entity_type == "monster":
+                monster_data = self._monster_manager.get_monster_data(entity.entity_id)
+                if monster_data:
+                    monster = Monster(entity.entity_id, entity.x, entity.y, monster_data)
+                    monster.load_resources()
+                    monsters.append(monster)
+                    # 添加到缓存
+                    self._monsters_cache[(level, entity.x, entity.y)] = monster
+
+        self._monsters[level] = monsters
+
+    def get_monster_at(self, x: int, y: int) -> Optional[Monster]:
+        """
+        获取指定位置的怪物
+
+        Args:
+            x: 瓦片 X 坐标
+            y: 瓦片 Y 坐标
+
+        Returns:
+            怪物实体，如果没有则返回 None
+        """
+        return self._monsters_cache.get((self._current_level, x, y))
+
+    def remove_monster(self, x: int, y: int) -> Optional[Monster]:
+        """
+        移除指定位置的怪物
+
+        Args:
+            x: 瓦片 X 坐标
+            y: 瓦片 Y 坐标
+
+        Returns:
+            被移除的怪物
+        """
+        key = (self._current_level, x, y)
+        monster = self._monsters_cache.pop(key, None)
+        if monster and self._current_level in self._monsters:
+            try:
+                self._monsters[self._current_level].remove(monster)
+            except ValueError:
+                pass
+        return monster
+
+    def get_current_monsters(self) -> List[Monster]:
+        """获取当前楼层的所有怪物"""
+        return self._monsters.get(self._current_level, [])
+
+    def update_monsters(self, delta_time: float) -> None:
+        """更新当前楼层所有怪物"""
+        for monster in self.get_current_monsters():
+            monster.update(delta_time)
+
+    def render_monsters(self, surface: Surface, offset: Tuple[int, int]) -> None:
+        """渲染当前楼层的所有怪物"""
+        for monster in self.get_current_monsters():
+            monster.render(surface, offset)

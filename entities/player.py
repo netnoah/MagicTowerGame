@@ -326,11 +326,14 @@ class Player:
         tile_pos = self.get_render_position(offset)
 
         if self._animation_player:
+            # 动态获取当前帧的 pivot（底部中部）
+            pivot_x, pivot_y = self._animation_player.get_pivot()
+
             # 使用 pivot 偏移：让玩家脚部对齐瓦片中心底部
             # 瓦片中心底部 = (tile_pos + TILE.SIZE/2, tile_pos + TILE.SIZE)
             # 偏移 = 瓦片中心底部 - pivot
-            pivot_offset_x = TILE.SIZE // 2 - PLAYER.SPRITE_PIVOT_X
-            pivot_offset_y = TILE.SIZE - PLAYER.SPRITE_PIVOT_Y
+            pivot_offset_x = TILE.SIZE // 2 - pivot_x
+            pivot_offset_y = TILE.SIZE - pivot_y
 
             render_pos = (
                 tile_pos[0] + pivot_offset_x,

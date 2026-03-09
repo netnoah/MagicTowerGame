@@ -10,12 +10,15 @@ import time
 
 import pygame
 
-from config import WindowConfig, GameState
+from config import WindowConfig, GameState, Direction
 from engine.display import DisplayManager
 from engine.input import InputHandler, KeyAction, create_default_bindings
 from engine.state_machine import GameStateMachine
 from systems.floor_manager import FloorManager
+from systems.tile import TileType
+from systems.combat import CombatSystem, CombatResult
 from entities.player import Player
+from entities.monster import Monster
 
 
 @dataclass
@@ -71,6 +74,13 @@ class Game:
 
         # 地图系统
         self._floor_manager: Optional[FloorManager] = None
+
+        # 楼层切换状态
+        self._can_change_floor: bool = True  # 是否可以切换楼层
+
+        # 战斗系统
+        self._combat_system = CombatSystem()
+        self._last_combat_result: Optional[CombatResult] = None
 
         # 设置默认按键绑定
         self._setup_default_bindings()
@@ -221,6 +231,14 @@ class Game:
         if self._player:
             self._player.update(self._time.delta_time)
 
+            # 检测楼梯（玩家不在移动时才检测）
+            if not self._player.is_moving:
+                self._check_stairs()
+
+        # 更新怪物
+        if self._floor_manager:
+            self._floor_manager.update_monsters(self._time.delta_time)
+
     def _update_menu(self) -> None:
         """更新菜单状态"""
         pass
@@ -254,6 +272,9 @@ class Game:
                 self._display.width, self._display.height
             )
             self._floor_manager.render(self._display.render_surface, offset)
+
+            # 渲染怪物
+            self._floor_manager.render_monsters(self._display.render_surface, offset)
 
         # 渲染玩家
         if self._player:
@@ -350,6 +371,63 @@ class Game:
     # 游戏操作方法
     # ============================================================
 
+    def _check_stairs(self) -> None:
+        """检测玩家是否站在楼梯上"""
+        if not self._player or not self._floor_manager:
+            return
+
+        # 只有在允许切换时才检测
+        if not self._can_change_floor:
+            return
+
+        tile = self._floor_manager.get_tile(
+            self._player.tile_x,
+            self._player.tile_y
+        )
+
+        if tile == TileType.STAIRS_UP:
+            # 上楼
+            self._change_floor(self._floor_manager.current_level + 1, is_going_up=True)
+        elif tile == TileType.STAIRS_DOWN:
+            # 下楼
+            self._change_floor(self._floor_manager.current_level - 1, is_going_up=False)
+
+    def _change_floor(self, target_level: int, is_going_up: bool) -> None:
+        """
+        切换楼层
+
+        Args:
+            target_level: 目标楼层
+            is_going_up: 是否是上楼
+        """
+        if target_level < 1:
+            return  # 不能下到 0 层
+
+        # 加载目标楼层
+        if not self._floor_manager.load_floor(target_level):
+            return  # 加载失败
+
+        # 更新玩家楼层
+        self._player.current_floor = target_level
+
+        # 设置玩家位置到对应楼梯
+        if is_going_up:
+            # 上楼后出现在下楼楼梯位置
+            stairs_pos = self._floor_manager.get_stairs_down()
+        else:
+            # 下楼后出现在上楼楼梯位置
+            stairs_pos = self._floor_manager.get_stairs_up()
+
+        if stairs_pos:
+            self._player.set_position(stairs_pos[0], stairs_pos[1])
+        else:
+            # 没有楼梯则使用玩家起始位置
+            start_pos = self._floor_manager.get_player_start()
+            self._player.set_position(start_pos[0], start_pos[1])
+
+        # 禁用楼层切换，直到玩家移动
+        self._can_change_floor = False
+
     def move_player(self, direction: str) -> None:
         """
         移动玩家（由输入处理器调用）
@@ -361,7 +439,73 @@ class Game:
             return
 
         if self._player and self._floor_manager:
-            self._player.move(direction, self._floor_manager)
+            # 如果正在移动，不处理
+            if self._player.is_moving:
+                return
+
+            # 计算目标位置
+            vector = Direction.VECTORS.get(direction, (0, 0))
+            target_x = self._player.tile_x + vector[0]
+            target_y = self._player.tile_y + vector[1]
+
+            # 检查目标位置是否有怪物
+            monster = self._floor_manager.get_monster_at(target_x, target_y)
+            if monster and monster.is_alive:
+                # 触发战斗
+                self._handle_combat(monster, target_x, target_y)
+            else:
+                # 正常移动
+                moved = self._player.move(direction, self._floor_manager)
+                if moved:
+                    # 玩家成功移动后，允许再次切换楼层
+                    self._can_change_floor = True
+
+    def _handle_combat(self, monster: Monster, target_x: int, target_y: int) -> None:
+        """
+        处理战斗
+
+        Args:
+            monster: 怪物实体
+            target_x: 目标 X 坐标
+            target_y: 目标 Y 坐标
+        """
+        # 预览战斗结果
+        result = self._combat_system.preview_battle(
+            self._player.stats, monster.stats
+        )
+
+        if result.victory:
+            # 执行战斗
+            self._combat_system.execute_battle(self._player, monster, result)
+
+            # 移除怪物
+            self._floor_manager.remove_monster(target_x, target_y)
+
+            # 移动玩家到怪物位置
+            self._player.set_position(target_x, target_y)
+            self._can_change_floor = True
+
+            # 更新面向方向
+            self._player._facing_direction = self._get_direction_to(target_x, target_y)
+        else:
+            # 无法击败，不执行战斗（避免玩家死亡）
+            # 可以显示提示信息
+            pass
+
+    def _get_direction_to(self, target_x: int, target_y: int) -> str:
+        """获取从玩家当前位置到目标位置的方向"""
+        dx = target_x - self._player.tile_x
+        dy = target_y - self._player.tile_y
+
+        if dx > 0:
+            return Direction.RIGHT
+        elif dx < 0:
+            return Direction.LEFT
+        elif dy > 0:
+            return Direction.DOWN
+        elif dy < 0:
+            return Direction.UP
+        return self._player.facing_direction
 
     def toggle_pause(self) -> None:
         """切换暂停状态"""

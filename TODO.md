@@ -35,7 +35,7 @@
 
 ---
 
-## Phase 3: 战斗系统 ⏳ 进行中
+## Phase 3: 战斗系统 ✅ 已完成
 
 - [x] 3.1 玩家实体 (`entities/player.py`)
   - [x] 属性系统 (HP/攻击/防御/金币/钥匙)
@@ -43,10 +43,21 @@
   - [x] 碰撞检测 (与地图瓦片)
   - [x] 动画渲染 (stat/walk/attack)
   - [x] 方向翻转 (左/右使用水平翻转)
-  - [x] Pivot 对齐 (脚部对齐瓦片位置，可配置)
-- [ ] 3.2 怪物实体 (`entities/monster.py`)
-- [ ] 3.3 战斗逻辑 (`systems/combat.py`)
-- [ ] 3.4 怪物数据定义 (`data/entities/monsters.json`)
+  - [x] Pivot 对齐 (动态获取底部中心)
+- [x] 3.2 怪物实体 (`entities/monster.py`)
+  - [x] MonsterManager 怪物数据管理
+  - [x] Monster 怪物实体类
+  - [x] 属性和渲染
+- [x] 3.3 战斗逻辑 (`systems/combat.py`)
+  - [x] 回合制战斗计算
+  - [x] 伤害公式 (攻击-防御, 最小1)
+  - [x] 战斗结果预览
+  - [x] 战斗执行
+- [x] 3.4 怪物数据定义 (`data/entities/monsters.json`)
+  - [x] 10种怪物定义
+- [x] 3.5 集成怪物到地图
+  - [x] FloorManager 加载/渲染怪物
+  - [x] 玩家碰撞怪物触发战斗
 
 ---
 
