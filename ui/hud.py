@@ -162,6 +162,10 @@ class HUD(UIComponent):
             y = self._draw_icon_row(surface, x, y, 'red_key',
                                     str(self._stats.red_keys), (255, 80, 80))
 
+        # === 快捷键说明 ===
+        # 在面板底部显示
+        self._draw_hotkeys(surface, x, self._y + self._height - 85)
+
     def _draw_stat_row(self, surface: Surface, x: int, y: int,
                        label: str, value: str, value_color: Tuple[int, int, int]) -> int:
         """
@@ -215,6 +219,44 @@ class HUD(UIComponent):
             (x, y),
             (x + width, y)
         )
+
+    def _draw_hotkeys(self, surface: Surface, x: int, y: int) -> None:
+        """
+        绘制快捷键说明
+
+        Args:
+            surface: 渲染表面
+            x: X 坐标
+            y: Y 坐标
+        """
+        font = UIFont()
+        content_width = self._config.WIDTH - self._config.PADDING * 2
+
+        # 分隔线
+        self._draw_divider(surface, x, y, content_width)
+        y += 10
+
+        # 标题
+        title_surface = font.render("Hotkeys", 12, self._style.highlight_color)
+        surface.blit(title_surface, (x, y))
+        y += 18
+
+        # 快捷键列表
+        hotkeys = [
+            ("Arrow", "Move"),
+            ("ESC", "Pause"),
+            ("CTRL", "Monsters"),
+        ]
+
+        key_color = (140, 180, 220)
+        desc_color = (160, 160, 160)
+
+        for key, desc in hotkeys:
+            key_surface = font.render(key, 11, key_color)
+            desc_surface = font.render(desc, 11, desc_color)
+            surface.blit(key_surface, (x, y))
+            surface.blit(desc_surface, (x + 50, y))
+            y += 16
 
 
 class CombatPreview(UIComponent):
