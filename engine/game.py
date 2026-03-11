@@ -300,6 +300,10 @@ class Game:
 
             # 渲染怪物
             self._floor_manager.render_monsters(self._display.render_surface, offset)
+            # 渲染物品
+            self._floor_manager.render_items(self._display.render_surface, offset)
+            # 渲染物品
+            self._floor_manager.render_items(self._display.render_surface, offset)
 
         # 渲染玩家
         if self._player:
@@ -475,6 +479,9 @@ class Game:
                     # 玩家成功移动后，允许再次切换楼层
                     self._can_change_floor = True
 
+                    # 检查并拾取物品
+                    self._check_and_pickup_item()
+
     def _handle_combat(self, monster: Monster, target_x: int, target_y: int) -> None:
         """
         处理战斗
@@ -516,6 +523,64 @@ class Game:
         """显示消息"""
         if self._message_display:
             self._message_display.add_message(text, color)
+
+    def _check_and_pickup_item(self) -> None:
+        """检查并拾取玩家当前位置的物品"""
+        if not self._player or not self._floor_manager:
+            return
+
+        # 获取玩家当前位置的物品
+        item_entity = self._floor_manager.get_item_at(
+            self._player.tile_x, self._player.tile_y
+        )
+
+        if not item_entity:
+            return
+
+        # 获取物品数据
+        item_data = self._floor_manager.get_item_data(item_entity.entity_id)
+        if not item_data:
+            return
+
+        # 应用物品效果
+        if item_data.effect:
+            changes = item_data.effect.apply(self._player.stats)
+
+            # 显示效果消息
+            item_name = item_data.name_cn or item_data.name
+
+            # 根据物品类型显示不同消息
+            if item_data.item_type.value == "key":
+                key_colors = {
+                    "yellow": (255, 255, 100),
+                    "blue": (100, 150, 255),
+                    "red": (255, 100, 100)
+                }
+                color = key_colors.get(item_entity.entity_id.split('_')[0], (255, 255, 255))
+                self._show_message(f"Got {item_name}!", color)
+            elif item_data.item_type.value == "potion":
+                hp_change = changes.get('hp', 0)
+                self._show_message(f"Used {item_name}: HP+{hp_change}", (100, 255, 100))
+            elif item_data.item_type.value == "weapon":
+                atk_change = changes.get('attack', 0)
+                self._show_message(f"Equipped {item_name}: ATK+{atk_change}", (255, 180, 80))
+            elif item_data.item_type.value == "armor":
+                def_change = changes.get('defense', 0)
+                self._show_message(f"Equipped {item_name}: DEF+{def_change}", (80, 180, 255))
+            elif item_data.item_type.value == "special":
+                if changes.get('gold', 0) > 0:
+                    self._show_message(f"Got {changes['gold']} Gold!", (255, 215, 0))
+                elif changes.get('experience', 0) > 0:
+                    self._show_message(f"Got {changes['experience']} EXP!", (200, 150, 255))
+                elif changes.get('max_hp', 0) > 0:
+                    self._show_message(f"Max HP+{changes['max_hp']}!", (255, 100, 200))
+                else:
+                    self._show_message(f"Got {item_name}!", (100, 255, 100))
+            else:
+                self._show_message(f"Got {item_name}!", (255, 255, 255))
+
+        # 移除物品
+        self._floor_manager.remove_item(self._player.tile_x, self._player.tile_y)
 
     def _get_direction_to(self, target_x: int, target_y: int) -> str:
         """获取从玩家当前位置到目标位置的方向"""

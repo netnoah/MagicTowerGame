@@ -18,6 +18,7 @@ from systems.tile import (
     tile_coords_to_pixels
 )
 from entities.monster import Monster, MonsterManager
+from systems.items import ItemManager, ItemData
 
 
 @dataclass
@@ -106,6 +107,12 @@ class FloorManager:
         self._monsters: Dict[int, List[Monster]] = {}  # {楼层: [怪物列表]}
         self._monsters_cache: Dict[Tuple[int, int, int], Monster] = {}  # {(楼层, x, y): Monster}
 
+        # 物品管理
+        self._item_manager = ItemManager()
+        self._item_manager.load_from_json("data/entities/items.json")
+        self._items: Dict[int, List[EntityPlacement]] = {}  # {楼层: [物品列表]}
+        self._items_cache: Dict[Tuple[int, int, int], EntityPlacement] = {}  # {(楼层, x, y): EntityPlacement}
+
     def load_tiles(self) -> None:
         """加载瓦片资源"""
         self._tile_manager.load_tiles()
@@ -142,6 +149,9 @@ class FloorManager:
 
             # 加载该楼层的怪物
             self._load_floor_monsters(level, floor_data.entities)
+
+            # 加载该楼层的物品
+            self._load_floor_items(level, floor_data.entities)
 
             return True
 
@@ -467,3 +477,129 @@ class FloorManager:
         """渲染当前楼层的所有怪物"""
         for monster in self.get_current_monsters():
             monster.render(surface, offset)
+
+    # ============================================================
+    # 物品管理
+    # ============================================================
+
+    def _load_floor_items(self, level: int, entities: List[EntityPlacement]) -> None:
+        """
+        加载楼层物品
+
+        Args:
+            level: 楼层编号
+            entities: 实体列表
+        """
+        if level in self._items:
+            return  # 已加载
+
+        items = []
+        for entity in entities:
+            if entity.entity_type == "item":
+                items.append(entity)
+                # 添加到缓存
+                self._items_cache[(level, entity.x, entity.y)] = entity
+
+        self._items[level] = items
+
+    def get_item_at(self, x: int, y: int) -> Optional[EntityPlacement]:
+        """
+        获取指定位置的物品
+
+        Args:
+            x: 瓦片 X 坐标
+            y: 瓦片 Y 坐标
+
+        Returns:
+            物品实体，如果没有则返回 None
+        """
+        return self._items_cache.get((self._current_level, x, y))
+
+    def get_item_data(self, item_id: str) -> Optional[ItemData]:
+        """
+        获取物品数据
+
+        Args:
+            item_id: 物品ID
+
+        Returns:
+            物品数据
+        """
+        return self._item_manager.get_item(item_id)
+
+    def remove_item(self, x: int, y: int) -> Optional[EntityPlacement]:
+        """
+        移除指定位置的物品
+
+        Args:
+            x: 瓦片 X 坐标
+            y: 瓦片 Y 坐标
+
+        Returns:
+            被移除的物品
+        """
+        key = (self._current_level, x, y)
+        item = self._items_cache.pop(key, None)
+        if item and self._current_level in self._items:
+            try:
+                self._items[self._current_level].remove(item)
+            except ValueError:
+                pass
+        # 同时从 entities 列表中移除
+        if item and self._current_floor:
+            try:
+                self._current_floor.entities.remove(item)
+            except ValueError:
+                pass
+        return item
+
+    def get_current_items(self) -> List[EntityPlacement]:
+        """获取当前楼层的所有物品"""
+        return self._items.get(self._current_level, [])
+
+    def render_items(self, surface: Surface, offset: Tuple[int, int]) -> None:
+        """
+        渲染当前楼层的所有物品
+
+        Args:
+            surface: 目标表面
+            offset: 渲染偏移
+        """
+        font_size = 12
+        try:
+            font = pygame.font.Font(None, font_size)
+        except:
+            font = pygame.font.SysFont('arial', font_size)
+
+        for item in self.get_current_items():
+            item_data = self._item_manager.get_item(item.entity_id)
+            if not item_data:
+                continue
+
+            # 计算渲染位置
+            pixel_x = item.x * self._tile_size + offset[0]
+            pixel_y = item.y * self._tile_size + offset[1]
+
+            # 绘制物品背景
+            bg_rect = pygame.Rect(pixel_x + 4, pixel_y + 4,
+                                   self._tile_size - 8, self._tile_size - 8)
+
+            # 根据物品类型设置颜色
+            color_map = {
+                "key": (255, 255, 100),      # 黄色系
+                "potion": (255, 100, 255),   # 紫色系
+                "weapon": (255, 150, 50),    # 橙色系
+                "armor": (100, 150, 255),    # 蓝色系
+                "special": (100, 255, 100),  # 绿色系
+            }
+            bg_color = color_map.get(item_data.item_type.value, (200, 200, 200))
+
+            # 绘制背景
+            pygame.draw.rect(surface, bg_color, bg_rect, border_radius=4)
+            pygame.draw.rect(surface, (255, 255, 255), bg_rect, 1, border_radius=4)
+
+            # 绘制物品名称首字母
+            char = item_data.name_cn[0] if item_data.name_cn else "?"
+            text_surface = font.render(char, True, (0, 0, 0))
+            text_rect = text_surface.get_rect(center=bg_rect.center)
+            surface.blit(text_surface, text_rect)
