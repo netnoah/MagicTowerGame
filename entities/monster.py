@@ -187,7 +187,8 @@ class Monster:
         """
         try:
             loader = ResourceLoader(sprite_path)
-            animations = loader.load_entity(self._sprite_name)
+            # 怪物不缩放，保持原始大小
+            animations = loader.load_entity(self._sprite_name, scale=False)
 
             self._animation_player = AnimationPlayer(animations)
 

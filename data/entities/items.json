@@ -295,6 +295,87 @@
       "consumable": false,
       "rarity": "legendary",
       "sprite": "sword_5"
+    },
+
+    "shield_1": {
+      "name": "Iron Shield",
+      "name_cn": "铁盾",
+      "type": "armor",
+      "description": "防御力+10",
+      "effect": {
+        "defense": 10
+      },
+      "price": 100,
+      "sell_price": 50,
+      "stackable": false,
+      "max_stack": 1,
+      "consumable": false,
+      "rarity": "common",
+      "sprite": "shield_1"
+    },
+    "shield_2": {
+      "name": "Steel Shield",
+      "name_cn": "钢盾",
+      "type": "armor",
+      "description": "防御力+25",
+      "effect": {
+        "defense": 25
+      },
+      "price": 300,
+      "sell_price": 150,
+      "stackable": false,
+      "max_stack": 1,
+      "consumable": false,
+      "rarity": "uncommon",
+      "sprite": "shield_2"
+    },
+    "shield_3": {
+      "name": "Silver Shield",
+      "name_cn": "银盾",
+      "type": "armor",
+      "description": "防御力+50",
+      "effect": {
+        "defense": 50
+      },
+      "price": 800,
+      "sell_price": 400,
+      "stackable": false,
+      "max_stack": 1,
+      "consumable": false,
+      "rarity": "rare",
+      "sprite": "shield_3"
+    },
+    "shield_4": {
+      "name": "Holy Shield",
+      "name_cn": "圣盾",
+      "type": "armor",
+      "description": "防御力+100",
+      "effect": {
+        "defense": 100
+      },
+      "price": 2000,
+      "sell_price": 1000,
+      "stackable": false,
+      "max_stack": 1,
+      "consumable": false,
+      "rarity": "epic",
+      "sprite": "shield_4"
+    },
+    "shield_5": {
+      "name": "Legendary Shield",
+      "name_cn": "传说之盾",
+      "type": "armor",
+      "description": "防御力+200",
+      "effect": {
+        "defense": 200
+      },
+      "price": 5000,
+      "sell_price": 2500,
+      "stackable": false,
+      "max_stack": 1,
+      "consumable": false,
+      "rarity": "legendary",
+      "sprite": "shield_5"
     }
   }
 }

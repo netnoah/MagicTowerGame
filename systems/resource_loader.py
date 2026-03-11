@@ -71,19 +71,21 @@ class ResourceLoader:
         self.base_path = Path(base_path)
         self._cache: Dict[str, Dict[str, AnimationData]] = {}
 
-    def load_entity(self, entity_name: str, use_cache: bool = True) -> Dict[str, AnimationData]:
+    def load_entity(self, entity_name: str, use_cache: bool = True, scale: bool = True) -> Dict[str, AnimationData]:
         """
         加载一个实体的所有动画
 
         Args:
             entity_name: 实体名称 (对应文件夹名，如 "playerA")
             use_cache: 是否使用缓存
+            scale: 是否缩放到 tile 大小（默认 True，怪物应设为 False）
 
         Returns:
             字典: {动画名称: AnimationData}
         """
-        if use_cache and entity_name in self._cache:
-            return self._cache[entity_name]
+        cache_key = f"{entity_name}_{'scaled' if scale else 'raw'}"
+        if use_cache and cache_key in self._cache:
+            return self._cache[cache_key]
 
         entity_path = self.base_path / entity_name
 
@@ -96,9 +98,9 @@ class ResourceLoader:
         # 加载每个动画
         animations: Dict[str, AnimationData] = {}
         for anim_name, files in animation_files.items():
-            animations[anim_name] = self._load_animation(anim_name, files)
+            animations[anim_name] = self._load_animation(anim_name, files, scale)
 
-        self._cache[entity_name] = animations
+        self._cache[cache_key] = animations
         return animations
 
     def _scan_animation_files(self, folder_path: Path) -> Dict[str, List[Tuple[int, Path]]]:
@@ -140,11 +142,9 @@ class ResourceLoader:
 
         return animation_files
 
-    def _load_animation(self, anim_name: str, files: List[Tuple[int, Path]]) -> AnimationData:
+    def _load_animation(self, anim_name: str, files: List[Tuple[int, Path]], scale: bool = True) -> AnimationData:
         """
         加载单个动画的所有帧，并生成四个方向
-
-        图片会缩放到一个 tile 大小内，保持宽高比
 
         方向生成（使用翻转而非旋转）：
         - RIGHT: 原图
@@ -155,6 +155,7 @@ class ResourceLoader:
         Args:
             anim_name: 动画名称
             files: [(帧序号, 文件路径), ...]
+            scale: 是否缩放到 tile 大小（默认 True）
 
         Returns:
             AnimationData
@@ -170,14 +171,17 @@ class ResourceLoader:
             # 加载原始图片
             original = pygame.image.load(str(file_path)).convert_alpha()
 
-            # 缩放到 tile 大小内，保持宽高比
-            scaled = self._scale_to_tile(original)
+            # 根据参数决定是否缩放
+            if scale:
+                processed = self._scale_to_tile(original)
+            else:
+                processed = original
 
             # 生成四个方向（使用翻转）
-            flipped = pygame.transform.flip(scaled, True, False)  # 水平翻转
+            flipped = pygame.transform.flip(processed, True, False)  # 水平翻转
 
-            frames_by_direction[Direction.RIGHT].append(scaled)
-            frames_by_direction[Direction.UP].append(scaled)  # 上和右一样
+            frames_by_direction[Direction.RIGHT].append(processed)
+            frames_by_direction[Direction.UP].append(processed)  # 上和右一样
             frames_by_direction[Direction.LEFT].append(flipped)
             frames_by_direction[Direction.DOWN].append(flipped)  # 下和左一样
 
@@ -245,13 +249,13 @@ class ResourceLoader:
 
     def load_item_sprite(self, sprite_name: str) -> Optional[Surface]:
         """
-        加载物品精灵图片（非动画）
+        加载物品精灵图片（非动画），不缩放，保持原始大小
 
         Args:
             sprite_name: 物品精灵名称（对应items.json中的sprite字段）
 
         Returns:
-            缩放后的物品图片，如果找不到返回None
+            物品图片（原始大小），如果找不到返回None
         """
         # 物品在 assets/sprites/items/ 目录下
         items_path = self.base_path / "items"
@@ -262,9 +266,8 @@ class ResourceLoader:
             if file_path.exists():
                 try:
                     original = pygame.image.load(str(file_path)).convert_alpha()
-                    # 缩放到 tile 大小
-                    scaled = self._scale_to_tile(original)
-                    return scaled
+                    # 不缩放，直接返回原始大小
+                    return original
                 except Exception as e:
                     print(f"Error loading item sprite {sprite_name}: {e}")
                     continue

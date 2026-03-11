@@ -302,8 +302,6 @@ class Game:
             self._floor_manager.render_monsters(self._display.render_surface, offset)
             # 渲染物品
             self._floor_manager.render_items(self._display.render_surface, offset)
-            # 渲染物品
-            self._floor_manager.render_items(self._display.render_surface, offset)
 
         # 渲染玩家
         if self._player:

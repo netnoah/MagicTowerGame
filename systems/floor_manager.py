@@ -19,6 +19,7 @@ from systems.tile import (
 )
 from entities.monster import Monster, MonsterManager
 from systems.items import ItemManager, ItemData
+from systems.resource_loader import ResourceLoader
 
 
 @dataclass
@@ -112,6 +113,10 @@ class FloorManager:
         self._item_manager.load_from_json("data/entities/items.json")
         self._items: Dict[int, List[EntityPlacement]] = {}  # {楼层: [物品列表]}
         self._items_cache: Dict[Tuple[int, int, int], EntityPlacement] = {}  # {(楼层, x, y): EntityPlacement}
+
+        # 资源加载器（用于加载物品sprite）
+        self._resource_loader = ResourceLoader("assets/sprites")
+        self._item_sprites: Dict[str, Surface] = {}  # 物品sprite缓存
 
     def load_tiles(self) -> None:
         """加载瓦片资源"""
@@ -557,6 +562,26 @@ class FloorManager:
         """获取当前楼层的所有物品"""
         return self._items.get(self._current_level, [])
 
+    def _get_item_sprite(self, sprite_name: str) -> Optional[Surface]:
+        """
+        获取物品sprite（带缓存）
+
+        Args:
+            sprite_name: 物品sprite名称
+
+        Returns:
+            物品图片，如果找不到返回None
+        """
+        if sprite_name in self._item_sprites:
+            return self._item_sprites[sprite_name]
+
+        # 尝试加载sprite
+        sprite = self._resource_loader.load_item_sprite(sprite_name)
+        if sprite:
+            self._item_sprites[sprite_name] = sprite
+
+        return sprite
+
     def render_items(self, surface: Surface, offset: Tuple[int, int]) -> None:
         """
         渲染当前楼层的所有物品
@@ -565,41 +590,39 @@ class FloorManager:
             surface: 目标表面
             offset: 渲染偏移
         """
-        font_size = 12
-        try:
-            font = pygame.font.Font(None, font_size)
-        except:
-            font = pygame.font.SysFont('arial', font_size)
-
         for item in self.get_current_items():
             item_data = self._item_manager.get_item(item.entity_id)
             if not item_data:
                 continue
 
-            # 计算渲染位置
+            # 计算渲染位置（居中）
             pixel_x = item.x * self._tile_size + offset[0]
             pixel_y = item.y * self._tile_size + offset[1]
 
-            # 绘制物品背景
-            bg_rect = pygame.Rect(pixel_x + 4, pixel_y + 4,
-                                   self._tile_size - 8, self._tile_size - 8)
+            # 尝试加载物品sprite
+            sprite = self._get_item_sprite(item_data.sprite)
 
-            # 根据物品类型设置颜色
-            color_map = {
-                "key": (255, 255, 100),      # 黄色系
-                "potion": (255, 100, 255),   # 紫色系
-                "weapon": (255, 150, 50),    # 橙色系
-                "armor": (100, 150, 255),    # 蓝色系
-                "special": (100, 255, 100),  # 绿色系
-            }
-            bg_color = color_map.get(item_data.item_type.value, (200, 200, 200))
+            if sprite:
+                # 居中绘制sprite
+                sprite_width, sprite_height = sprite.get_size()
+                blit_x = pixel_x + (self._tile_size - sprite_width) // 2
+                blit_y = pixel_y + (self._tile_size - sprite_height) // 2
+                surface.blit(sprite, (blit_x, blit_y))
+            else:
+                # 如果找不到sprite，绘制占位符（黄色框）
+                bg_rect = pygame.Rect(pixel_x + 4, pixel_y + 4,
+                                       self._tile_size - 8, self._tile_size - 8)
 
-            # 绘制背景
-            pygame.draw.rect(surface, bg_color, bg_rect, border_radius=4)
-            pygame.draw.rect(surface, (255, 255, 255), bg_rect, 1, border_radius=4)
+                # 根据物品类型设置颜色
+                color_map = {
+                    "key": (255, 255, 100),      # 黄色系
+                    "potion": (255, 100, 255),   # 紫色系
+                    "weapon": (255, 150, 50),    # 橙色系
+                    "armor": (100, 150, 255),    # 蓝色系
+                    "special": (100, 255, 100),  # 绿色系
+                }
+                bg_color = color_map.get(item_data.item_type.value, (200, 200, 200))
 
-            # 绘制物品名称首字母
-            char = item_data.name_cn[0] if item_data.name_cn else "?"
-            text_surface = font.render(char, True, (0, 0, 0))
-            text_rect = text_surface.get_rect(center=bg_rect.center)
-            surface.blit(text_surface, text_rect)
+                # 绘制背景
+                pygame.draw.rect(surface, bg_color, bg_rect, border_radius=4)
+                pygame.draw.rect(surface, (255, 255, 255), bg_rect, 1, border_radius=4)
