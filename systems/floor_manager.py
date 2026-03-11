@@ -315,6 +315,10 @@ class FloorManager:
         if tile_type is None:
             return False
 
+        # 检查是否有门（门不可直接行走，需要先开门）
+        if self.get_door_at(x, y):
+            return False
+
         return self._tile_manager.is_walkable(tile_type)
 
     def is_interactive(self, x: int, y: int) -> bool:

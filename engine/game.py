@@ -467,6 +467,17 @@ class Game:
             target_x = self._player.tile_x + vector[0]
             target_y = self._player.tile_y + vector[1]
 
+            # 检查目标位置是否有门
+            door = self._floor_manager.get_door_at(target_x, target_y)
+            if door:
+                # 尝试开门
+                if self._try_open_door(door, target_x, target_y):
+                    # 开门成功，移动到门位置
+                    self._player.set_position(target_x, target_y)
+                    self._player._facing_direction = direction
+                    self._can_change_floor = True
+                return
+
             # 检查目标位置是否有怪物
             monster = self._floor_manager.get_monster_at(target_x, target_y)
             if monster and monster.is_alive:
@@ -481,6 +492,55 @@ class Game:
 
                     # 检查并拾取物品
                     self._check_and_pickup_item()
+
+    def _try_open_door(self, door, target_x: int, target_y: int) -> bool:
+        """
+        尝试开门
+
+        Args:
+            door: 门实体
+            target_x: 目标 X 坐标
+            target_y: 目标 Y 坐标
+
+        Returns:
+            是否成功开门
+        """
+        if not self._player:
+            return False
+
+        # 门类型到钥匙属性的映射
+        door_key_map = {
+            "yellow": "yellow_keys",
+            "blue": "blue_keys",
+            "red": "red_keys",
+            "green": "green_keys",
+        }
+
+        door_color = door.entity_id
+        key_attr = door_key_map.get(door_color)
+
+        if not key_attr:
+            return False
+
+        # 检查玩家是否有对应的钥匙
+        key_count = getattr(self._player.stats, key_attr, 0)
+
+        if key_count > 0:
+            # 消耗钥匙
+            setattr(self._player.stats, key_attr, key_count - 1)
+
+            # 移除门
+            self._floor_manager.remove_door(target_x, target_y)
+
+            # 显示消息
+            door_name = {"yellow": "Yellow", "blue": "Blue", "red": "Red", "green": "Green"}
+            self._show_message(f"Opened {door_name.get(door_color, '')} Door!", (100, 255, 100))
+
+            return True
+        else:
+            # 没有钥匙
+            self._show_message(f"Need {door_color} key!", (255, 100, 100))
+            return False
 
     def _handle_combat(self, monster: Monster, target_x: int, target_y: int) -> None:
         """
