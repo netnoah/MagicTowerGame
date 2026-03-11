@@ -26,6 +26,22 @@ class KeyBinding:
     callback: Callable[[], None]  # 回调函数
     name: str = ""              # 绑定名称（用于调试）
 
+@dataclass
+class CharBinding:
+    """字符输入绑定（TEXTINPUT）"""
+    char: str
+    action: KeyAction
+    callback: Callable[[], None]
+    name: str = ""
+
+@dataclass
+class ScancodeBinding:
+    """扫描码绑定"""
+    scancode: int
+    action: KeyAction
+    callback: Callable[[], None]
+    name: str = ""
+
 
 class InputHandler:
     """
@@ -51,12 +67,19 @@ class InputHandler:
     def __init__(self):
         # 按键绑定
         self._bindings: Dict[int, list[KeyBinding]] = {}
+        # 字符输入绑定（TEXTINPUT）
+        self._char_bindings: Dict[str, list[CharBinding]] = {}
+        # 扫描码绑定
+        self._scancode_bindings: Dict[int, list[ScancodeBinding]] = {}
 
         # 当前按下的键
         self._held_keys: Set[int] = set()
+        self._held_scancodes: Set[int] = set()
 
         # 按键状态缓存（防止重复触发）
         self._press_handled: Set[int] = set()
+        # 扫描码状态缓存（防止重复触发）
+        self._scancode_press_handled: Set[int] = set()
 
         # 鼠标状态
         self._mouse_pos: tuple[int, int] = (0, 0)
@@ -100,9 +123,57 @@ class InputHandler:
                 b for b in self._bindings[key] if b.action != action
             ]
 
+    def bind_char(self, char: str, action: KeyAction,
+                  callback: Callable[[], None], name: str = "") -> None:
+        """
+        绑定字符输入（TEXTINPUT）
+        """
+        c = (char or "").lower()
+        if not c:
+            return
+        binding = CharBinding(char=c, action=action, callback=callback, name=name)
+        if c not in self._char_bindings:
+            self._char_bindings[c] = []
+        self._char_bindings[c].append(binding)
+
+    def unbind_char(self, char: str, action: Optional[KeyAction] = None) -> None:
+        """
+        解绑字符输入
+        """
+        c = (char or "").lower()
+        if not c or c not in self._char_bindings:
+            return
+        if action is None:
+            del self._char_bindings[c]
+        else:
+            self._char_bindings[c] = [
+                b for b in self._char_bindings[c] if b.action != action
+            ]
+
+    def bind_scancode(self, scancode: int, action: KeyAction,
+                      callback: Callable[[], None], name: str = "") -> None:
+        """绑定扫描码输入"""
+        binding = ScancodeBinding(scancode=scancode, action=action, callback=callback, name=name)
+        if scancode not in self._scancode_bindings:
+            self._scancode_bindings[scancode] = []
+        self._scancode_bindings[scancode].append(binding)
+
+    def unbind_scancode(self, scancode: int, action: Optional[KeyAction] = None) -> None:
+        """解绑扫描码输入"""
+        if scancode not in self._scancode_bindings:
+            return
+        if action is None:
+            del self._scancode_bindings[scancode]
+        else:
+            self._scancode_bindings[scancode] = [
+                b for b in self._scancode_bindings[scancode] if b.action != action
+            ]
+
     def unbind_all(self) -> None:
-        """解绑所有按键"""
+        """解绑所有按键、字符和扫描码"""
         self._bindings.clear()
+        self._char_bindings.clear()
+        self._scancode_bindings.clear()
 
     def handle_event(self, event: pygame.event.Event) -> None:
         """
@@ -111,14 +182,26 @@ class InputHandler:
         Args:
             event: pygame 事件对象
         """
-        if not self._enabled:
-            return
-
         if event.type == pygame.KEYDOWN:
+            print(f"[DEBUG INPUT] handle_event: KEYDOWN key={event.key}, enabled={self._enabled}")
+            if not self._enabled:
+                return
             self._handle_key_press(event.key)
+            sc = getattr(event, 'scancode', None)
+            if sc is not None:
+                self._handle_scancode_press(sc)
 
         elif event.type == pygame.KEYUP:
             self._handle_key_release(event.key)
+            sc = getattr(event, 'scancode', None)
+            if sc is not None:
+                self._handle_scancode_release(sc)
+
+        elif event.type == pygame.TEXTINPUT:
+            print(f"[DEBUG INPUT] handle_event: TEXTINPUT text={getattr(event, 'text', '')}, enabled={self._enabled}")
+            if not self._enabled:
+                return
+            self._handle_text_input(getattr(event, 'text', ''))
 
         elif event.type == pygame.MOUSEMOTION:
             self._mouse_pos = event.pos
@@ -143,6 +226,8 @@ class InputHandler:
         # 处理持续按住的键
         for key in self._held_keys:
             self._trigger_bindings(key, KeyAction.HOLD)
+        for sc in self._held_scancodes:
+            self._trigger_scancode_bindings(sc, KeyAction.HOLD)
 
     def _handle_key_press(self, key: int) -> None:
         """处理按键按下"""
@@ -151,6 +236,11 @@ class InputHandler:
 
         self._held_keys.add(key)
         self._press_handled.add(key)
+
+        # Debug: print key press
+        key_name = pygame.key.name(key) if hasattr(pygame.key, 'name') else str(key)
+        print(f"[DEBUG INPUT] Key pressed: {key_name} (code={key}), enabled={self._enabled}")
+
         self._trigger_bindings(key, KeyAction.PRESS)
 
     def _handle_key_release(self, key: int) -> None:
@@ -159,13 +249,64 @@ class InputHandler:
         self._press_handled.discard(key)
         self._trigger_bindings(key, KeyAction.RELEASE)
 
+    def _handle_scancode_press(self, scancode: int) -> None:
+        """处理扫描码按下"""
+        if scancode in self._scancode_press_handled:
+            return
+        self._held_scancodes.add(scancode)
+        self._scancode_press_handled.add(scancode)
+        print(f"[DEBUG INPUT] Scancode pressed: {scancode}, enabled={self._enabled}")
+        self._trigger_scancode_bindings(scancode, KeyAction.PRESS)
+
+    def _handle_scancode_release(self, scancode: int) -> None:
+        """处理扫描码释放"""
+        self._held_scancodes.discard(scancode)
+        self._scancode_press_handled.discard(scancode)
+        self._trigger_scancode_bindings(scancode, KeyAction.RELEASE)
+
+    def _handle_text_input(self, text: str) -> None:
+        """处理文本输入（兼容中文输入法/IME）"""
+        if not text:
+            return
+        for ch in text.lower():
+            self._trigger_char_bindings(ch, KeyAction.PRESS)
+
     def _trigger_bindings(self, key: int, action: KeyAction) -> None:
         """触发指定键和动作的所有绑定"""
         if key not in self._bindings:
+            print(f"[DEBUG INPUT] No bindings for key {key}")
             return
+
+        bindings_count = len([b for b in self._bindings[key] if b.action == action])
+        print(f"[DEBUG INPUT] Triggering {bindings_count} bindings for key {key}, action={action}")
 
         for binding in self._bindings[key]:
             if binding.action == action:
+                print(f"[DEBUG INPUT] Calling callback: {binding.name}")
+                binding.callback()
+
+    def _trigger_char_bindings(self, char: str, action: KeyAction) -> None:
+        """触发指定字符和动作的所有绑定（TEXTINPUT）"""
+        if char not in self._char_bindings:
+            print(f"[DEBUG INPUT] No char bindings for '{char}'")
+            return
+        bindings_count = len([b for b in self._char_bindings[char] if b.action == action])
+        print(f"[DEBUG INPUT] Triggering {bindings_count} char bindings for '{char}', action={action}")
+        for binding in self._char_bindings[char]:
+            if binding.action == action:
+                print(f"[DEBUG INPUT] Calling callback: {binding.name}")
+                binding.callback()
+
+    def _trigger_scancode_bindings(self, scancode: int, action: KeyAction) -> None:
+        """触发指定扫描码和动作的所有绑定"""
+        if scancode not in self._scancode_bindings:
+            print(f"[DEBUG INPUT] No scancode bindings for {scancode}")
+            return
+        bindings_count = len([b for b in self._scancode_bindings[scancode] if b.action == action])
+        print(f"[DEBUG INPUT] Triggering {bindings_count} scancode bindings for {scancode}, action={action}")
+        for binding in self._scancode_bindings[scancode]:
+            if binding.action == action:
+                print(f"[DEBUG INPUT] Calling callback: {binding.name}")
                 binding.callback()
 
     def is_key_held(self, key: int) -> bool:

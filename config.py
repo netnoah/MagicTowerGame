@@ -23,9 +23,18 @@ class TileConfig:
     """瓦片配置"""
     SIZE: int = 32  # 每个瓦片的像素尺寸
 
-    # 地图尺寸（瓦片数）- 刚好填充 800x600 窗口
+    # 地图尺寸（瓦片数）- 原始尺寸
     MAP_WIDTH: int = 25   # 25 * 32 = 800
     MAP_HEIGHT: int = 19  # 19 * 32 = 608 (略高于 600，向上取整)
+
+
+@dataclass(frozen=True)
+class HUDConfig:
+    """HUD 配置"""
+    WIDTH: int = 160          # HUD 面板宽度
+    OFFSET_X: int = 0         # HUD X 偏移
+    OFFSET_Y: int = 0         # HUD Y 偏移
+    MAP_OFFSET_X: int = 160   # 地图 X 偏移（为 HUD 留出空间）
 
 
 @dataclass(frozen=True)
@@ -76,6 +85,7 @@ TILE = TileConfig()
 PLAYER = PlayerConfig()
 PATH = PathConfig()
 COLOR = ColorConfig()
+HUD = HUDConfig()
 
 
 # 游戏状态枚举
