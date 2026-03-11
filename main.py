@@ -6,16 +6,17 @@ Magic Tower Game - 游戏入口
 """
 
 import sys
+from config import WindowConfig  # 1. 导入配置
 from engine.game import Game
 
 
 def main():
     """游戏入口函数"""
     game = Game(
-        width=800,
-        height=600,
-        title="Magic Tower",
-        fps=60
+        width=WindowConfig.WIDTH,   # 2. 使用配置值
+        height=WindowConfig.HEIGHT, # 2. 使用配置值
+        title=WindowConfig.TITLE,
+        fps=WindowConfig.FPS
     )
 
     try:

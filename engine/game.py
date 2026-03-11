@@ -66,6 +66,9 @@ class Game:
         self._input = InputHandler()
         self._state_machine = GameStateMachine(GameState.MENU)
 
+        # 禁用文本输入模式，防止 IME 拦截按键
+        pygame.key.stop_text_input()
+
         # 时间追踪
         self._time = GameTime()
         self._clock = pygame.time.Clock()
@@ -174,10 +177,6 @@ class Game:
             if event.type == pygame.QUIT:
                 self._running = False
                 return
-
-            # Debug: 打印所有按键事件
-            if event.type == pygame.KEYDOWN:
-                print(f"[DEBUG GAME] _handle_events: KEYDOWN key={event.key}, unicode={getattr(event, 'unicode', '?')}")
 
             # 让输入处理器处理
             self._input.handle_event(event)
@@ -535,32 +534,23 @@ class Game:
 
     def toggle_monster_info(self) -> None:
         """切换怪物信息面板"""
-        print(f"[DEBUG] toggle_monster_info called, state={self._state_machine.current_state}")
-
         if self._state_machine.current_state != GameState.PLAYING:
-            print("[DEBUG] Not in PLAYING state, ignoring O key")
             return
 
         if self._monster_info_panel:
             self._monster_info_panel.toggle()
-            print(f"[DEBUG] Panel toggled, visible={self._monster_info_panel.is_visible()}")
 
             # 如果打开，更新数据
             if self._monster_info_panel.is_visible():
                 self._update_monster_info()
-        else:
-            print("[DEBUG] monster_info_panel is None!")
 
     def _update_monster_info(self) -> None:
         """更新怪物信息面板数据"""
-        print("[DEBUG] _update_monster_info called")
         if not self._monster_info_panel or not self._floor_manager or not self._player:
-            print(f"[DEBUG] _update_monster_info early return: panel={self._monster_info_panel is not None}, floor_manager={self._floor_manager is not None}, player={self._player is not None}")
             return
 
         # 获取当前楼层所有怪物
         monsters = self._floor_manager.get_current_monsters()
-        print(f"[DEBUG] Found {len(monsters)} monsters on current floor")
 
         # 按类型分组并计算战斗预览
         monster_dict: Dict[str, Dict] = {}
@@ -611,10 +601,8 @@ class Game:
 
         if current == GameState.PLAYING:
             self._state_machine.transition_to(GameState.PAUSED)
-            self._input.disable()
         elif current == GameState.PAUSED:
             self._state_machine.transition_to(GameState.PLAYING)
-            self._input.enable()
 
     def menu_select_up(self) -> None:
         """菜单选择上一项"""
@@ -726,7 +714,6 @@ class Game:
 
     def _on_enter_playing(self) -> None:
         """进入游戏进行中状态"""
-        print("[DEBUG] Entering PLAYING state")
         self._input.enable()
 
         # 初始化地图系统
@@ -734,14 +721,12 @@ class Game:
             self._floor_manager = FloorManager()
             self._floor_manager.load_tiles()
             self._floor_manager.load_floor(1)
-            print("[DEBUG] FloorManager initialized")
 
         # 初始化玩家
         if self._player is None and self._floor_manager:
             start_pos = self._floor_manager.get_player_start()
             self._player = Player(start_pos[0], start_pos[1])
             self._player.load_resources()
-            print(f"[DEBUG] Player initialized at ({start_pos[0]}, {start_pos[1]})")
 
         # 初始化 HUD
         if self._hud is None:
@@ -750,12 +735,10 @@ class Game:
                 y=HUD.OFFSET_Y,
                 height=self._display.height
             )
-            print("[DEBUG] HUD initialized")
 
         # 初始化怪物信息面板
         if self._monster_info_panel is None:
             self._monster_info_panel = MonsterInfoPanel()
-            print("[DEBUG] MonsterInfoPanel initialized")
 
         # 初始化消息显示
         if self._message_display is None:
@@ -764,8 +747,7 @@ class Game:
                 y=self._display.height - 100,
                 width=self._display.width - HUD.WIDTH - 20
             )
-            print("[DEBUG] MessageDisplay initialized")
 
     def _on_enter_paused(self) -> None:
         """进入暂停状态"""
-        self._input.disable()
+        pass  # 输入处理器保持启用，按键回调会根据状态处理

@@ -11,8 +11,8 @@ from typing import Tuple
 @dataclass(frozen=True)
 class WindowConfig:
     """窗口配置"""
-    WIDTH: int = 800
-    HEIGHT: int = 600
+    WIDTH: int = 1120  # HUD(160) + 边距(160) + 地图(800)
+    HEIGHT: int = 608  # 地图高度(19 * 32)
     TITLE: str = "Magic Tower"
     FPS: int = 60
     BACKGROUND_COLOR: Tuple[int, int, int] = (30, 30, 40)
@@ -23,9 +23,9 @@ class TileConfig:
     """瓦片配置"""
     SIZE: int = 32  # 每个瓦片的像素尺寸
 
-    # 地图尺寸（瓦片数）- 原始尺寸
+    # 地图尺寸（瓦片数）
     MAP_WIDTH: int = 25   # 25 * 32 = 800
-    MAP_HEIGHT: int = 19  # 19 * 32 = 608 (略高于 600，向上取整)
+    MAP_HEIGHT: int = 19  # 19 * 32 = 608
 
 
 @dataclass(frozen=True)

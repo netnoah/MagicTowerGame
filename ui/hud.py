@@ -515,10 +515,22 @@ class MonsterInfoPanel(UIComponent):
         )
         y += 12
 
+        # 列位置定义（与数据行对齐）
+        col_name = x
+        col_hp = x + 90
+        col_atk = x + 140
+        col_def = x + 190
+        col_dmg = x + 240
+        col_win = x + 295
+
         # 表头
-        header = "Name          HP    ATK   DEF   Dmg   Win"
-        header_surface = font.render(header, 12, (150, 150, 170))
-        surface.blit(header_surface, (x, y))
+        header_color = (150, 150, 170)
+        surface.blit(font.render("Name", 12, header_color), (col_name, y))
+        surface.blit(font.render("HP", 12, header_color), (col_hp, y))
+        surface.blit(font.render("ATK", 12, header_color), (col_atk, y))
+        surface.blit(font.render("DEF", 12, header_color), (col_def, y))
+        surface.blit(font.render("Dmg", 12, header_color), (col_dmg, y))
+        surface.blit(font.render("Win", 12, header_color), (col_win, y))
         y += 22
 
         # 怪物列表
@@ -535,37 +547,47 @@ class MonsterInfoPanel(UIComponent):
                 name = info.get('name', 'Unknown')[:10]
                 name_color = (255, 200, 150) if info.get('can_win') else (255, 120, 120)
                 name_surface = font.render(name, 14, name_color)
-                surface.blit(name_surface, (x, y))
+                surface.blit(name_surface, (col_name, y))
 
-                # 属性
-                stats = f"{info.get('hp', 0):>5} {info.get('atk', 0):>5} {info.get('def', 0):>5}"
-                stats_surface = font.render(stats, 13, (180, 180, 180))
-                surface.blit(stats_surface, (x + 85, y + 1))
+                # HP
+                hp_text = str(info.get('hp', 0))
+                hp_surface = font.render(hp_text, 13, (180, 180, 180))
+                surface.blit(hp_surface, (col_hp, y + 1))
+
+                # ATK
+                atk_text = str(info.get('atk', 0))
+                atk_surface = font.render(atk_text, 13, (180, 180, 180))
+                surface.blit(atk_surface, (col_atk, y + 1))
+
+                # DEF
+                def_text = str(info.get('def', 0))
+                def_surface = font.render(def_text, 13, (180, 180, 180))
+                surface.blit(def_surface, (col_def, y + 1))
 
                 # 预估伤害
                 damage = info.get('damage_taken', 0)
                 if info.get('can_win'):
                     damage_color = (255, 200, 100) if damage > 0 else (100, 255, 100)
-                    damage_text = f"{damage:>5}"
+                    damage_text = str(damage)
                     win_text = "Yes"
                     win_color = (100, 255, 100)
                 else:
                     damage_color = (255, 100, 100)
-                    damage_text = "  N/A"
+                    damage_text = "N/A"
                     win_text = "No"
                     win_color = (255, 100, 100)
 
                 damage_surface = font.render(damage_text, 13, damage_color)
-                surface.blit(damage_surface, (x + 210, y + 1))
+                surface.blit(damage_surface, (col_dmg, y + 1))
 
                 win_surface = font.render(win_text, 13, win_color)
-                surface.blit(win_surface, (x + 280, y + 1))
+                surface.blit(win_surface, (col_win, y + 1))
 
                 # 数量
                 count = info.get('count', 1)
                 if count > 1:
                     count_surface = font.render(f"x{count}", 12, (150, 150, 150))
-                    surface.blit(count_surface, (x + 320, y + 1))
+                    surface.blit(count_surface, (col_win + 45, y + 1))
 
                 y += 26
 

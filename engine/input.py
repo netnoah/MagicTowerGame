@@ -183,7 +183,6 @@ class InputHandler:
             event: pygame 事件对象
         """
         if event.type == pygame.KEYDOWN:
-            print(f"[DEBUG INPUT] handle_event: KEYDOWN key={event.key}, enabled={self._enabled}")
             if not self._enabled:
                 return
             self._handle_key_press(event.key)
@@ -198,7 +197,6 @@ class InputHandler:
                 self._handle_scancode_release(sc)
 
         elif event.type == pygame.TEXTINPUT:
-            print(f"[DEBUG INPUT] handle_event: TEXTINPUT text={getattr(event, 'text', '')}, enabled={self._enabled}")
             if not self._enabled:
                 return
             self._handle_text_input(getattr(event, 'text', ''))
@@ -237,10 +235,6 @@ class InputHandler:
         self._held_keys.add(key)
         self._press_handled.add(key)
 
-        # Debug: print key press
-        key_name = pygame.key.name(key) if hasattr(pygame.key, 'name') else str(key)
-        print(f"[DEBUG INPUT] Key pressed: {key_name} (code={key}), enabled={self._enabled}")
-
         self._trigger_bindings(key, KeyAction.PRESS)
 
     def _handle_key_release(self, key: int) -> None:
@@ -255,7 +249,6 @@ class InputHandler:
             return
         self._held_scancodes.add(scancode)
         self._scancode_press_handled.add(scancode)
-        print(f"[DEBUG INPUT] Scancode pressed: {scancode}, enabled={self._enabled}")
         self._trigger_scancode_bindings(scancode, KeyAction.PRESS)
 
     def _handle_scancode_release(self, scancode: int) -> None:
@@ -274,39 +267,26 @@ class InputHandler:
     def _trigger_bindings(self, key: int, action: KeyAction) -> None:
         """触发指定键和动作的所有绑定"""
         if key not in self._bindings:
-            print(f"[DEBUG INPUT] No bindings for key {key}")
             return
-
-        bindings_count = len([b for b in self._bindings[key] if b.action == action])
-        print(f"[DEBUG INPUT] Triggering {bindings_count} bindings for key {key}, action={action}")
 
         for binding in self._bindings[key]:
             if binding.action == action:
-                print(f"[DEBUG INPUT] Calling callback: {binding.name}")
                 binding.callback()
 
     def _trigger_char_bindings(self, char: str, action: KeyAction) -> None:
         """触发指定字符和动作的所有绑定（TEXTINPUT）"""
         if char not in self._char_bindings:
-            print(f"[DEBUG INPUT] No char bindings for '{char}'")
             return
-        bindings_count = len([b for b in self._char_bindings[char] if b.action == action])
-        print(f"[DEBUG INPUT] Triggering {bindings_count} char bindings for '{char}', action={action}")
         for binding in self._char_bindings[char]:
             if binding.action == action:
-                print(f"[DEBUG INPUT] Calling callback: {binding.name}")
                 binding.callback()
 
     def _trigger_scancode_bindings(self, scancode: int, action: KeyAction) -> None:
         """触发指定扫描码和动作的所有绑定"""
         if scancode not in self._scancode_bindings:
-            print(f"[DEBUG INPUT] No scancode bindings for {scancode}")
             return
-        bindings_count = len([b for b in self._scancode_bindings[scancode] if b.action == action])
-        print(f"[DEBUG INPUT] Triggering {bindings_count} scancode bindings for {scancode}, action={action}")
         for binding in self._scancode_bindings[scancode]:
             if binding.action == action:
-                print(f"[DEBUG INPUT] Calling callback: {binding.name}")
                 binding.callback()
 
     def is_key_held(self, key: int) -> bool:

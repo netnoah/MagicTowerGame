@@ -71,7 +71,7 @@ class DisplayManager:
 
         pygame.display.set_caption(title)
 
-        # 创建渲染表面（用于缩放）
+        # 创建渲染表面（用于缩放） - 使用传入的实际尺寸
         self._render_surface = Surface((width, height))
         self._scale = 1.0
 
