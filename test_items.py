@@ -33,7 +33,7 @@ def test_item_manager():
         print(f"  {item_type.value}: {len(type_items)}")
 
     # 获取一个物品
-    sword = manager.get_item("iron_sword")
+    sword = manager.get_item("sword_1")
     if sword:
         print(f"\n物品详情: {sword.name_cn}")
         print(f"  类型: {sword.item_type.value}")
@@ -64,11 +64,11 @@ def test_item_effect():
     print(f"装备武器(+25ATK): {changes}")
     print(f"当前攻击: {stats.attack}")
 
-    # 测试防具效果
-    effect = ItemEffect(defense=15)
+    # 测试宝石效果
+    effect = ItemEffect(attack=10, defense=10)
     changes = effect.apply(stats)
-    print(f"装备防具(+15DEF): {changes}")
-    print(f"当前防御: {stats.defense}")
+    print(f"使用宝石(+10ATK,+10DEF): {changes}")
+    print(f"当前攻击/防御: {stats.attack}/{stats.defense}")
 
     # 测试生命水晶
     effect = ItemEffect(max_hp=100)
@@ -90,8 +90,8 @@ def test_item_use():
     stats = PlayerStats()
     print(f"初始HP: {stats.hp}/{stats.max_hp}")
 
-    # 测试小药水
-    potion = items["small_potion"]
+    # 测试红药水
+    potion = items["red_potion"]
     print(f"\n使用 {potion.name_cn}: {potion.description}")
     if potion.can_use(stats):
         changes = potion.use(stats)
@@ -110,7 +110,7 @@ def test_item_use():
     print(f"\n钥匙 {key.name_cn} 能否直接使用: {key.can_use(stats)}")
 
     # 测试武器
-    sword = items["iron_sword"]
+    sword = items["sword_1"]
     print(f"\n装备 {sword.name_cn}: {sword.description}")
     changes = sword.use(stats)
     print(f"效果: {changes}")
@@ -147,6 +147,8 @@ def test_default_items():
                 effects.append(f"蓝钥匙{item.effect.blue_keys:+d}")
             if item.effect.red_keys:
                 effects.append(f"红钥匙{item.effect.red_keys:+d}")
+            if item.effect.green_keys:
+                effects.append(f"绿钥匙{item.effect.green_keys:+d}")
             effect_str = ", ".join(effects)
 
         print(f"  [{item.rarity.value:9}] {item.name_cn:10} | {item.item_type.value:7} | {effect_str}")

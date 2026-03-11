@@ -29,6 +29,7 @@ class PlayerStats:
     yellow_keys: int = PLAYER.INITIAL_KEYS[0]
     blue_keys: int = PLAYER.INITIAL_KEYS[1]
     red_keys: int = PLAYER.INITIAL_KEYS[2]
+    green_keys: int = 0
 
 
 class MoveState(Enum):
@@ -386,7 +387,7 @@ class Player:
         添加钥匙
 
         Args:
-            key_type: "yellow", "blue", "red"
+            key_type: "yellow", "blue", "red", "green"
 
         Returns:
             是否成功
@@ -400,6 +401,9 @@ class Player:
         elif key_type == "red":
             self._stats.red_keys += 1
             return True
+        elif key_type == "green":
+            self._stats.green_keys += 1
+            return True
         return False
 
     def use_key(self, key_type: str) -> bool:
@@ -407,7 +411,7 @@ class Player:
         使用钥匙
 
         Args:
-            key_type: "yellow", "blue", "red"
+            key_type: "yellow", "blue", "red", "green"
 
         Returns:
             是否成功
@@ -421,6 +425,9 @@ class Player:
         elif key_type == "red" and self._stats.red_keys > 0:
             self._stats.red_keys -= 1
             return True
+        elif key_type == "green" and self._stats.green_keys > 0:
+            self._stats.green_keys -= 1
+            return True
         return False
 
     def has_key(self, key_type: str) -> bool:
@@ -431,6 +438,8 @@ class Player:
             return self._stats.blue_keys > 0
         elif key_type == "red":
             return self._stats.red_keys > 0
+        elif key_type == "green":
+            return self._stats.green_keys > 0
         return False
 
     def is_alive(self) -> bool:

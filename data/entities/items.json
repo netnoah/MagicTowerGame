@@ -48,14 +48,49 @@
       "rarity": "rare",
       "sprite": "red_key"
     },
-
-    "small_potion": {
-      "name": "Small Potion",
-      "name_cn": "小药水",
-      "type": "potion",
-      "description": "恢复100点HP",
+    "green_key": {
+      "name": "Green Key",
+      "name_cn": "绿钥匙",
+      "type": "key",
+      "description": "打开绿色门",
       "effect": {
-        "hp": 100
+        "green_keys": 1
+      },
+      "price": 200,
+      "sell_price": 100,
+      "stackable": true,
+      "max_stack": 99,
+      "consumable": false,
+      "rarity": "rare",
+      "sprite": "green_key"
+    },
+    "master_key": {
+      "name": "Master Key",
+      "name_cn": "万能钥匙",
+      "type": "key",
+      "description": "可打开任意颜色的门",
+      "effect": {
+        "yellow_keys": 1,
+        "blue_keys": 1,
+        "red_keys": 1,
+        "green_keys": 1
+      },
+      "price": 500,
+      "sell_price": 250,
+      "stackable": true,
+      "max_stack": 99,
+      "consumable": true,
+      "rarity": "epic",
+      "sprite": "master_key"
+    },
+
+    "red_potion": {
+      "name": "Red Potion",
+      "name_cn": "红药水",
+      "type": "potion",
+      "description": "恢复200点HP",
+      "effect": {
+        "hp": 200
       },
       "price": 50,
       "sell_price": 25,
@@ -63,15 +98,15 @@
       "max_stack": 99,
       "consumable": true,
       "rarity": "common",
-      "sprite": "potion_small"
+      "sprite": "red_potion"
     },
-    "medium_potion": {
-      "name": "Medium Potion",
-      "name_cn": "中药水",
+    "blue_potion": {
+      "name": "Blue Potion",
+      "name_cn": "蓝药水",
+      "description": "恢复500点HP",
       "type": "potion",
-      "description": "恢复300点HP",
       "effect": {
-        "hp": 300
+        "hp": 500
       },
       "price": 150,
       "sell_price": 75,
@@ -79,15 +114,15 @@
       "max_stack": 99,
       "consumable": true,
       "rarity": "uncommon",
-      "sprite": "potion_medium"
+      "sprite": "blue_potion"
     },
-    "large_potion": {
-      "name": "Large Potion",
-      "name_cn": "大药水",
+    "green_potion": {
+      "name": "Green Potion",
+      "name_cn": "绿药水",
       "type": "potion",
-      "description": "恢复500点HP",
+      "description": "恢复1000点HP",
       "effect": {
-        "hp": 500
+        "hp": 1000
       },
       "price": 300,
       "sell_price": 150,
@@ -95,11 +130,11 @@
       "max_stack": 99,
       "consumable": true,
       "rarity": "rare",
-      "sprite": "potion_large"
+      "sprite": "green_potion"
     },
-    "full_potion": {
-      "name": "Full Restore",
-      "name_cn": "完全恢复药",
+    "brown_potion": {
+      "name": "Brown Potion",
+      "name_cn": "棕药水",
       "type": "potion",
       "description": "完全恢复HP",
       "effect": {
@@ -111,10 +146,77 @@
       "max_stack": 99,
       "consumable": true,
       "rarity": "epic",
-      "sprite": "potion_full"
+      "sprite": "brown_potion"
     },
 
-    "iron_sword": {
+    "red_gem": {
+      "name": "Red Gem",
+      "name_cn": "红宝石",
+      "type": "special",
+      "description": "攻击力+3",
+      "effect": {
+        "attack": 3
+      },
+      "price": 100,
+      "sell_price": 50,
+      "stackable": true,
+      "max_stack": 99,
+      "consumable": true,
+      "rarity": "uncommon",
+      "sprite": "red_gem"
+    },
+    "blue_gem": {
+      "name": "Blue Gem",
+      "name_cn": "蓝宝石",
+      "type": "special",
+      "description": "防御力+3",
+      "effect": {
+        "defense": 3
+      },
+      "price": 100,
+      "sell_price": 50,
+      "stackable": true,
+      "max_stack": 99,
+      "consumable": true,
+      "rarity": "uncommon",
+      "sprite": "blue_gem"
+    },
+    "green_gem": {
+      "name": "Green Gem",
+      "name_cn": "绿宝石",
+      "type": "special",
+      "description": "攻击力+5, 防御力+5",
+      "effect": {
+        "attack": 5,
+        "defense": 5
+      },
+      "price": 200,
+      "sell_price": 100,
+      "stackable": true,
+      "max_stack": 99,
+      "consumable": true,
+      "rarity": "rare",
+      "sprite": "green_gem"
+    },
+    "brown_gem": {
+      "name": "Brown Gem",
+      "name_cn": "棕宝石",
+      "type": "special",
+      "description": "攻击力+10, 防御力+10",
+      "effect": {
+        "attack": 10,
+        "defense": 10
+      },
+      "price": 400,
+      "sell_price": 200,
+      "stackable": true,
+      "max_stack": 99,
+      "consumable": true,
+      "rarity": "epic",
+      "sprite": "brown_gem"
+    },
+
+    "sword_1": {
       "name": "Iron Sword",
       "name_cn": "铁剑",
       "type": "weapon",
@@ -128,9 +230,9 @@
       "max_stack": 1,
       "consumable": false,
       "rarity": "common",
-      "sprite": "sword_iron"
+      "sprite": "sword_1"
     },
-    "steel_sword": {
+    "sword_2": {
       "name": "Steel Sword",
       "name_cn": "钢剑",
       "type": "weapon",
@@ -144,9 +246,9 @@
       "max_stack": 1,
       "consumable": false,
       "rarity": "uncommon",
-      "sprite": "sword_steel"
+      "sprite": "sword_2"
     },
-    "silver_sword": {
+    "sword_3": {
       "name": "Silver Sword",
       "name_cn": "银剑",
       "type": "weapon",
@@ -160,9 +262,9 @@
       "max_stack": 1,
       "consumable": false,
       "rarity": "rare",
-      "sprite": "sword_silver"
+      "sprite": "sword_3"
     },
-    "holy_sword": {
+    "sword_4": {
       "name": "Holy Sword",
       "name_cn": "圣剑",
       "type": "weapon",
@@ -176,9 +278,9 @@
       "max_stack": 1,
       "consumable": false,
       "rarity": "epic",
-      "sprite": "sword_holy"
+      "sprite": "sword_4"
     },
-    "legend_sword": {
+    "sword_5": {
       "name": "Legendary Sword",
       "name_cn": "传说之剑",
       "type": "weapon",
@@ -192,137 +294,7 @@
       "max_stack": 1,
       "consumable": false,
       "rarity": "legendary",
-      "sprite": "sword_legend"
-    },
-
-    "leather_armor": {
-      "name": "Leather Armor",
-      "name_cn": "皮甲",
-      "type": "armor",
-      "description": "防御力+10",
-      "effect": {
-        "defense": 10
-      },
-      "price": 100,
-      "sell_price": 50,
-      "stackable": false,
-      "max_stack": 1,
-      "consumable": false,
-      "rarity": "common",
-      "sprite": "armor_leather"
-    },
-    "chain_armor": {
-      "name": "Chain Armor",
-      "name_cn": "锁子甲",
-      "type": "armor",
-      "description": "防御力+25",
-      "effect": {
-        "defense": 25
-      },
-      "price": 300,
-      "sell_price": 150,
-      "stackable": false,
-      "max_stack": 1,
-      "consumable": false,
-      "rarity": "uncommon",
-      "sprite": "armor_chain"
-    },
-    "plate_armor": {
-      "name": "Plate Armor",
-      "name_cn": "板甲",
-      "type": "armor",
-      "description": "防御力+50",
-      "effect": {
-        "defense": 50
-      },
-      "price": 800,
-      "sell_price": 400,
-      "stackable": false,
-      "max_stack": 1,
-      "consumable": false,
-      "rarity": "rare",
-      "sprite": "armor_plate"
-    },
-    "holy_armor": {
-      "name": "Holy Armor",
-      "name_cn": "圣甲",
-      "type": "armor",
-      "description": "防御力+100",
-      "effect": {
-        "defense": 100
-      },
-      "price": 2000,
-      "sell_price": 1000,
-      "stackable": false,
-      "max_stack": 1,
-      "consumable": false,
-      "rarity": "epic",
-      "sprite": "armor_holy"
-    },
-
-    "gold_coin_small": {
-      "name": "Small Gold Bag",
-      "name_cn": "小金币袋",
-      "type": "special",
-      "description": "获得50金币",
-      "effect": {
-        "gold": 50
-      },
-      "price": 0,
-      "sell_price": 50,
-      "stackable": true,
-      "max_stack": 99,
-      "consumable": true,
-      "rarity": "common",
-      "sprite": "gold_small"
-    },
-    "gold_coin_large": {
-      "name": "Large Gold Bag",
-      "name_cn": "大金币袋",
-      "type": "special",
-      "description": "获得200金币",
-      "effect": {
-        "gold": 200
-      },
-      "price": 0,
-      "sell_price": 200,
-      "stackable": true,
-      "max_stack": 99,
-      "consumable": true,
-      "rarity": "uncommon",
-      "sprite": "gold_large"
-    },
-    "exp_book": {
-      "name": "Experience Book",
-      "name_cn": "经验之书",
-      "type": "special",
-      "description": "获得50经验",
-      "effect": {
-        "experience": 50
-      },
-      "price": 100,
-      "sell_price": 50,
-      "stackable": true,
-      "max_stack": 99,
-      "consumable": true,
-      "rarity": "uncommon",
-      "sprite": "book_exp"
-    },
-    "life_crystal": {
-      "name": "Life Crystal",
-      "name_cn": "生命水晶",
-      "type": "special",
-      "description": "最大HP+100",
-      "effect": {
-        "max_hp": 100
-      },
-      "price": 500,
-      "sell_price": 250,
-      "stackable": true,
-      "max_stack": 99,
-      "consumable": true,
-      "rarity": "rare",
-      "sprite": "crystal_life"
+      "sprite": "sword_5"
     }
   }
 }

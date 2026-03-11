@@ -243,9 +243,33 @@ class ResourceLoader:
 
         raise FileNotFoundError(f"Sprite not found: {entity_path / sprite_name}")
 
-    def clear_cache(self):
-        """清除缓存"""
-        self._cache.clear()
+    def load_item_sprite(self, sprite_name: str) -> Optional[Surface]:
+        """
+        加载物品精灵图片（非动画）
+
+        Args:
+            sprite_name: 物品精灵名称（对应items.json中的sprite字段）
+
+        Returns:
+            缩放后的物品图片，如果找不到返回None
+        """
+        # 物品在 assets/sprites/items/ 目录下
+        items_path = self.base_path / "items"
+
+        # 尝试不同的扩展名
+        for ext in self.SUPPORTED_EXTENSIONS:
+            file_path = items_path / f"{sprite_name}{ext}"
+            if file_path.exists():
+                try:
+                    original = pygame.image.load(str(file_path)).convert_alpha()
+                    # 缩放到 tile 大小
+                    scaled = self._scale_to_tile(original)
+                    return scaled
+                except Exception as e:
+                    print(f"Error loading item sprite {sprite_name}: {e}")
+                    continue
+
+        return None
 
     def get_animation_info(self, entity_name: str) -> Dict[str, int]:
         """
