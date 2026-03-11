@@ -298,6 +298,8 @@ class Game:
             offset = (original_offset[0] + map_offset_x, original_offset[1])
             self._floor_manager.render(self._display.render_surface, offset)
 
+            # 渲染门
+            self._floor_manager.render_doors(self._display.render_surface, offset)
             # 渲染怪物
             self._floor_manager.render_monsters(self._display.render_surface, offset)
             # 渲染物品

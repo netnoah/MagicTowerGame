@@ -72,6 +72,7 @@ class FloorManager:
         10: TileType.DOOR_YELLOW,
         11: TileType.DOOR_BLUE,
         12: TileType.DOOR_RED,
+        13: TileType.DOOR_GREEN,
         20: TileType.STAIRS_UP,
         21: TileType.STAIRS_DOWN,
         30: TileType.SHOP,
@@ -118,6 +119,10 @@ class FloorManager:
         self._resource_loader = ResourceLoader("assets/sprites")
         self._item_sprites: Dict[str, Surface] = {}  # 物品sprite缓存
 
+        # 门管理
+        self._doors: Dict[int, List[EntityPlacement]] = {}  # {楼层: [门列表]}
+        self._doors_cache: Dict[Tuple[int, int, int], EntityPlacement] = {}  # {(楼层, x, y): EntityPlacement}
+
     def load_tiles(self) -> None:
         """加载瓦片资源"""
         self._tile_manager.load_tiles()
@@ -157,6 +162,9 @@ class FloorManager:
 
             # 加载该楼层的物品
             self._load_floor_items(level, floor_data.entities)
+
+            # 加载该楼层的门
+            self._load_floor_doors(level, floor_data.entities)
 
             return True
 
@@ -626,3 +634,96 @@ class FloorManager:
                 # 绘制背景
                 pygame.draw.rect(surface, bg_color, bg_rect, border_radius=4)
                 pygame.draw.rect(surface, (255, 255, 255), bg_rect, 1, border_radius=4)
+
+    # ============================================================
+    # 门管理
+    # ============================================================
+
+    def _load_floor_doors(self, level: int, entities: List[EntityPlacement]) -> None:
+        """
+        加载楼层的门
+
+        Args:
+            level: 楼层编号
+            entities: 实体列表
+        """
+        if level in self._doors:
+            return  # 已加载
+
+        doors = []
+        for entity in entities:
+            if entity.entity_type == "door":
+                doors.append(entity)
+                # 添加到缓存
+                self._doors_cache[(level, entity.x, entity.y)] = entity
+
+        self._doors[level] = doors
+
+    def get_door_at(self, x: int, y: int) -> Optional[EntityPlacement]:
+        """
+        获取指定位置的门
+
+        Args:
+            x: 瓦片 X 坐标
+            y: 瓦片 Y 坐标
+
+        Returns:
+            门实体，如果没有则返回 None
+        """
+        return self._doors_cache.get((self._current_level, x, y))
+
+    def remove_door(self, x: int, y: int) -> Optional[EntityPlacement]:
+        """
+        移除指定位置的门（开门后调用）
+
+        Args:
+            x: 瓦片 X 坐标
+            y: 瓦片 Y 坐标
+
+        Returns:
+            被移除的门
+        """
+        key = (self._current_level, x, y)
+        door = self._doors_cache.pop(key, None)
+        if door and self._current_level in self._doors:
+            try:
+                self._doors[self._current_level].remove(door)
+            except ValueError:
+                pass
+        # 同时从 entities 列表中移除
+        if door and self._current_floor:
+            try:
+                self._current_floor.entities.remove(door)
+            except ValueError:
+                pass
+        return door
+
+    def get_current_doors(self) -> List[EntityPlacement]:
+        """获取当前楼层的所有门"""
+        return self._doors.get(self._current_level, [])
+
+    def render_doors(self, surface: Surface, offset: Tuple[int, int]) -> None:
+        """
+        渲染当前楼层的所有门
+
+        Args:
+            surface: 目标表面
+            offset: 渲染偏移
+        """
+        # 门类型到TileType的映射
+        door_type_map = {
+            "yellow": TileType.DOOR_YELLOW,
+            "blue": TileType.DOOR_BLUE,
+            "red": TileType.DOOR_RED,
+            "green": TileType.DOOR_GREEN if hasattr(TileType, 'DOOR_GREEN') else TileType.DOOR_YELLOW,
+        }
+
+        for door in self.get_current_doors():
+            pixel_x = door.x * self._tile_size + offset[0]
+            pixel_y = door.y * self._tile_size + offset[1]
+
+            # 获取门类型对应的TileType
+            tile_type = door_type_map.get(door.entity_id, TileType.DOOR_YELLOW)
+
+            # 使用TileManager渲染门
+            self._tile_manager.draw_tile(surface, tile_type, (pixel_x, pixel_y))

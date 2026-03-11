@@ -26,6 +26,7 @@ class TileType(Enum):
     DOOR_YELLOW = auto()  # 黄门（需要黄钥匙）
     DOOR_BLUE = auto()    # 蓝门（需要蓝钥匙）
     DOOR_RED = auto()     # 红门（需要红钥匙）
+    DOOR_GREEN = auto()   # 绿门（需要绿钥匙）
 
     # 楼梯
     STAIRS_UP = auto()    # 上楼楼梯
@@ -60,6 +61,7 @@ TILE_PROPERTIES: Dict[TileType, TileProperties] = {
     TileType.DOOR_YELLOW: TileProperties(walkable=True, interactive=True, blocks_view=True, requires_key="yellow"),
     TileType.DOOR_BLUE: TileProperties(walkable=True, interactive=True, blocks_view=True, requires_key="blue"),
     TileType.DOOR_RED: TileProperties(walkable=True, interactive=True, blocks_view=True, requires_key="red"),
+    TileType.DOOR_GREEN: TileProperties(walkable=True, interactive=True, blocks_view=True, requires_key="green"),
     TileType.STAIRS_UP: TileProperties(walkable=True, interactive=True, blocks_view=False),
     TileType.STAIRS_DOWN: TileProperties(walkable=True, interactive=True, blocks_view=False),
     TileType.SHOP: TileProperties(walkable=True, interactive=True, blocks_view=False),
@@ -96,6 +98,7 @@ class TileManager:
         TileType.DOOR_YELLOW: "door_yellow.png",
         TileType.DOOR_BLUE: "door_blue.png",
         TileType.DOOR_RED: "door_red.png",
+        TileType.DOOR_GREEN: "door_green.png",
         TileType.STAIRS_UP: "stairs_up.png",
         TileType.STAIRS_DOWN: "stairs_down.png",
         TileType.SHOP: "shop.png",
@@ -162,6 +165,7 @@ class TileManager:
             TileType.DOOR_YELLOW: (200, 200, 50),
             TileType.DOOR_BLUE: (50, 50, 200),
             TileType.DOOR_RED: (200, 50, 50),
+            TileType.DOOR_GREEN: (50, 200, 50),
             TileType.STAIRS_UP: (100, 200, 100),
             TileType.STAIRS_DOWN: (200, 100, 100),
             TileType.SHOP: (200, 150, 50),
