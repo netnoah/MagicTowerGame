@@ -43,6 +43,13 @@
     {"type": "item", "id": "yellow_key", "x": 14, "y": 8, "data": {}},
     {"type": "item", "id": "gold_coin_small", "x": 12, "y": 5, "data": {}},
     {"type": "item", "id": "iron_sword", "x": 5, "y": 15, "data": {}},
-    {"type": "item", "id": "leather_armor", "x": 19, "y": 15, "data": {}}
+    {"type": "item", "id": "leather_armor", "x": 19, "y": 15, "data": {}},
+
+    {"type": "door", "id": "yellow", "x": 4, "y": 5, "data": {}},
+    {"type": "door", "id": "yellow", "x": 20, "y": 5, "data": {}},
+    {"type": "door", "id": "yellow", "x": 6, "y": 13, "data": {}},
+    {"type": "door", "id": "yellow", "x": 18, "y": 13, "data": {}},
+    {"type": "door", "id": "yellow", "x": 12, "y": 11, "data": {}},
+    {"type": "door", "id": "blue", "x": 12, "y": 2, "data": {}}
   ]
 }

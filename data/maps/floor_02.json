@@ -52,6 +52,7 @@
 
     {"type": "door", "id": "yellow", "x": 5, "y": 10, "data": {}},
     {"type": "door", "id": "yellow", "x": 19, "y": 10, "data": {}},
+    {"type": "door", "id": "yellow", "x": 12, "y": 3, "data": {}},
     {"type": "door", "id": "blue", "x": 12, "y": 7, "data": {}}
   ]
 }
