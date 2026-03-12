@@ -123,6 +123,10 @@ class FloorManager:
         self._doors: Dict[int, List[EntityPlacement]] = {}  # {楼层: [门列表]}
         self._doors_cache: Dict[Tuple[int, int, int], EntityPlacement] = {}  # {(楼层, x, y): EntityPlacement}
 
+        # 商店管理
+        self._shops: Dict[int, List[EntityPlacement]] = {}  # {楼层: [商店列表]}
+        self._shops_cache: Dict[Tuple[int, int, int], EntityPlacement] = {}  # {(楼层, x, y): EntityPlacement}
+
     def load_tiles(self) -> None:
         """加载瓦片资源"""
         self._tile_manager.load_tiles()
@@ -165,6 +169,9 @@ class FloorManager:
 
             # 加载该楼层的门
             self._load_floor_doors(level, floor_data.entities)
+
+            # 加载该楼层的商店
+            self._load_floor_shops(level, floor_data.entities)
 
             return True
 
@@ -731,3 +738,58 @@ class FloorManager:
 
             # 使用TileManager渲染门
             self._tile_manager.draw_tile(surface, tile_type, (pixel_x, pixel_y))
+
+    # ============================================================
+    # 商店管理
+    # ============================================================
+
+    def _load_floor_shops(self, level: int, entities: List[EntityPlacement]) -> None:
+        """
+        加载楼层的商店
+
+        Args:
+            level: 楼层编号
+            entities: 实体列表
+        """
+        if level in self._shops:
+            return  # 已加载
+
+        shops = []
+        for entity in entities:
+            if entity.entity_type == "shop":
+                shops.append(entity)
+                # 添加到缓存
+                self._shops_cache[(level, entity.x, entity.y)] = entity
+
+        self._shops[level] = shops
+
+    def get_shop_at(self, x: int, y: int) -> Optional[EntityPlacement]:
+        """
+        获取指定位置的商店
+
+        Args:
+            x: 瓦片 X 坐标
+            y: 瓦片 Y 坐标
+
+        Returns:
+            商店实体，如果没有则返回 None
+        """
+        return self._shops_cache.get((self._current_level, x, y))
+
+    def get_current_shops(self) -> List[EntityPlacement]:
+        """获取当前楼层的所有商店"""
+        return self._shops.get(self._current_level, [])
+
+    def get_shop_id_at(self, x: int, y: int) -> Optional[str]:
+        """
+        获取指定位置商店的ID
+
+        Args:
+            x: 瓦片 X 坐标
+            y: 瓦片 Y 坐标
+
+        Returns:
+            商店ID，如果没有则返回 None
+        """
+        shop = self.get_shop_at(x, y)
+        return shop.entity_id if shop else None

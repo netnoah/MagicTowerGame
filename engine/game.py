@@ -17,10 +17,12 @@ from engine.state_machine import GameStateMachine
 from systems.floor_manager import FloorManager
 from systems.tile import TileType
 from systems.combat import CombatSystem, CombatResult
+from systems.shop import ShopManager, ShopData, ShopItem, ShopUpgrade
 from entities.player import Player
 from entities.monster import Monster
 from ui.hud import HUD as GameHUD, MessageDisplay, MonsterInfoPanel
 from ui.menu import MainMenu, PauseMenu
+from ui.shop_ui import ShopUI, ShopEntry
 
 
 @dataclass
@@ -93,6 +95,11 @@ class Game:
         self._monster_info_panel: Optional[MonsterInfoPanel] = None
         self._main_menu: Optional[MainMenu] = None
         self._pause_menu: Optional[PauseMenu] = None
+
+        # 商店系统
+        self._shop_manager: Optional[ShopManager] = None
+        self._shop_ui: Optional[ShopUI] = None
+        self._current_shop: Optional[ShopData] = None
 
         # 初始化主菜单
         self._main_menu = MainMenu(width, height)
@@ -273,7 +280,8 @@ class Game:
 
     def _update_shop(self) -> None:
         """更新商店状态"""
-        pass
+        if self._shop_ui:
+            self._shop_ui.update(self._time.delta_time)
 
     def _update_dialog(self) -> None:
         """更新对话状态"""
@@ -347,7 +355,12 @@ class Game:
 
     def _render_shop(self) -> None:
         """渲染商店状态"""
-        pass
+        # 先渲染游戏画面（半透明背景）
+        self._render_playing()
+
+        # 渲染商店UI
+        if self._shop_ui:
+            self._shop_ui.render(self._display.render_surface)
 
     def _render_dialog(self) -> None:
         """渲染对话状态"""
@@ -447,7 +460,7 @@ class Game:
         if self._state_machine.current_state != GameState.PLAYING:
             return
 
-        # 如果怪物信息面板打开，用 UP/DOWN 键滚动，LEFT/RIGHT 仍然可以移动
+        # 如果怪物信息面板打开，用 UP/DOWN 键滚动
         if self._monster_info_panel and self._monster_info_panel.is_visible():
             if direction == "up":
                 self._monster_info_panel.scroll_up()
@@ -493,22 +506,14 @@ class Game:
                     # 检查并拾取物品
                     self._check_and_pickup_item()
 
+                    # 检查商店（无论是否有物品都要检查）
+                    self._check_shop()
+
     def _try_open_door(self, door, target_x: int, target_y: int) -> bool:
-        """
-        尝试开门
-
-        Args:
-            door: 门实体
-            target_x: 目标 X 坐标
-            target_y: 目标 Y 坐标
-
-        Returns:
-            是否成功开门
-        """
+        """尝试开门"""
         if not self._player:
             return False
 
-        # 门类型到钥匙属性的映射
         door_key_map = {
             "yellow": "yellow_keys",
             "blue": "blue_keys",
@@ -522,61 +527,35 @@ class Game:
         if not key_attr:
             return False
 
-        # 检查玩家是否有对应的钥匙
         key_count = getattr(self._player.stats, key_attr, 0)
 
         if key_count > 0:
-            # 消耗钥匙
             setattr(self._player.stats, key_attr, key_count - 1)
-
-            # 移除门
             self._floor_manager.remove_door(target_x, target_y)
-
-            # 显示消息
-            door_name = {"yellow": "Yellow", "blue": "Blue", "red": "Red", "green": "Green"}
-            self._show_message(f"Opened {door_name.get(door_color, '')} Door!", (100, 255, 100))
-
+            self._show_message(f"Opened {door_color} door!", (100, 255, 100))
             return True
         else:
-            # 没有钥匙
             self._show_message(f"Need {door_color} key!", (255, 100, 100))
             return False
 
     def _handle_combat(self, monster: Monster, target_x: int, target_y: int) -> None:
-        """
-        处理战斗
-
-        Args:
-            monster: 怪物实体
-            target_x: 目标 X 坐标
-            target_y: 目标 Y 坐标
-        """
-        # 预览战斗结果
+        """处理战斗"""
         result = self._combat_system.preview_battle(
             self._player.stats, monster.stats
         )
 
         if result.victory:
-            # 执行战斗
             self._combat_system.execute_battle(self._player, monster, result)
-
-            # 移除怪物
             self._floor_manager.remove_monster(target_x, target_y)
-
-            # 移动玩家到怪物位置
             self._player.set_position(target_x, target_y)
             self._can_change_floor = True
-
-            # 更新面向方向
             self._player._facing_direction = self._get_direction_to(target_x, target_y)
 
-            # 显示战斗结果消息
             monster_name = monster.stats.name_cn or monster.stats.name or monster.monster_id
             self._show_message(f"Defeated {monster_name}!", (100, 255, 100))
             if result.player_damage > 0:
                 self._show_message(f"Lost {result.player_damage} HP", (255, 150, 100))
         else:
-            # 无法击败
             self._show_message("Cannot defeat!", (255, 100, 100))
 
     def _show_message(self, text: str, color: tuple = (255, 255, 255)) -> None:
@@ -589,7 +568,6 @@ class Game:
         if not self._player or not self._floor_manager:
             return
 
-        # 获取玩家当前位置的物品
         item_entity = self._floor_manager.get_item_at(
             self._player.tile_x, self._player.tile_y
         )
@@ -597,7 +575,6 @@ class Game:
         if not item_entity:
             return
 
-        # 获取物品数据
         item_data = self._floor_manager.get_item_data(item_entity.entity_id)
         if not item_data:
             return
@@ -605,11 +582,8 @@ class Game:
         # 应用物品效果
         if item_data.effect:
             changes = item_data.effect.apply(self._player.stats)
-
-            # 显示效果消息
             item_name = item_data.name_cn or item_data.name
 
-            # 根据物品类型显示不同消息
             if item_data.item_type.value == "key":
                 key_colors = {
                     "yellow": (255, 255, 100),
@@ -630,12 +604,6 @@ class Game:
             elif item_data.item_type.value == "special":
                 if changes.get('gold', 0) > 0:
                     self._show_message(f"Got {changes['gold']} Gold!", (255, 215, 0))
-                elif changes.get('experience', 0) > 0:
-                    self._show_message(f"Got {changes['experience']} EXP!", (200, 150, 255))
-                elif changes.get('max_hp', 0) > 0:
-                    self._show_message(f"Max HP+{changes['max_hp']}!", (255, 100, 200))
-                elif changes.get('attack', 0) > 0 and changes.get('defense', 0) > 0:
-                    self._show_message(f"Got {item_name}: ATK+{changes['attack']} DEF+{changes['defense']}!", (255, 200, 100))
                 elif changes.get('attack', 0) > 0:
                     self._show_message(f"Got {item_name}: ATK+{changes['attack']}!", (255, 100, 100))
                 elif changes.get('defense', 0) > 0:
@@ -645,8 +613,74 @@ class Game:
             else:
                 self._show_message(f"Got {item_name}!", (255, 255, 255))
 
-        # 移除物品
         self._floor_manager.remove_item(self._player.tile_x, self._player.tile_y)
+
+    def _check_shop(self) -> None:
+        """检查玩家是否站在商店上"""
+        if not self._player or not self._floor_manager:
+            return
+
+        # 先检查该位置是否有商店实体
+        shop_id = self._floor_manager.get_shop_id_at(
+            self._player.tile_x,
+            self._player.tile_y
+        )
+        if shop_id:
+            self._open_shop(shop_id)
+            return
+
+        # 兼容：也检查瓦片类型
+        tile = self._floor_manager.get_tile(
+            self._player.tile_x,
+            self._player.tile_y
+        )
+
+        if tile == TileType.SHOP:
+            if shop_id:
+                self._open_shop(shop_id)
+
+    def _open_shop(self, shop_id: str) -> None:
+        """打开商店界面"""
+        if not self._shop_manager or not self._shop_ui:
+            return
+
+        shop_data = self._shop_manager.get_shop(shop_id)
+        if not shop_data:
+            self._show_message(f"Shop not found: {shop_id}", (255, 100, 100))
+            return
+
+        self._current_shop = shop_data
+        self._shop_ui.open(shop_data, self._player.stats)
+        self._shop_ui.set_callbacks(
+            on_buy=self._on_shop_buy,
+            on_close=self._close_shop
+        )
+        self._state_machine.transition_to(GameState.SHOP)
+        self._show_message(f"Welcome to {shop_data.name_cn}!", (100, 200, 255))
+
+    def _close_shop(self) -> None:
+        """关闭商店界面"""
+        self._state_machine.transition_to(GameState.PLAYING)
+        self._current_shop = None
+        # 直接设置状态，不调用 close() 避免递归
+        if self._shop_ui:
+            self._shop_ui._visible = False
+            self._shop_ui._shop_data = None
+            self._shop_ui._player_stats = None
+            self._shop_ui._entries.clear()
+
+    def _on_shop_buy(self, entry: ShopEntry) -> bool:
+        """商店购买回调"""
+        if not self._player or not self._shop_manager:
+            return False
+
+        if entry.entry_type == "item":
+            shop_item = entry.data
+            return self._shop_manager.buy_item(self._player.stats, shop_item)
+        elif entry.entry_type == "upgrade":
+            upgrade = entry.data
+            return self._shop_manager.buy_upgrade(self._player.stats, upgrade)
+        return False
 
     def _get_direction_to(self, target_x: int, target_y: int) -> str:
         """获取从玩家当前位置到目标位置的方向"""
@@ -670,8 +704,6 @@ class Game:
 
         if self._monster_info_panel:
             self._monster_info_panel.toggle()
-
-            # 如果打开，更新数据
             if self._monster_info_panel.is_visible():
                 self._update_monster_info()
 
@@ -680,10 +712,7 @@ class Game:
         if not self._monster_info_panel or not self._floor_manager or not self._player:
             return
 
-        # 获取当前楼层所有怪物
         monsters = self._floor_manager.get_current_monsters()
-
-        # 按类型分组并计算战斗预览
         monster_dict: Dict[str, Dict] = {}
 
         for monster in monsters:
@@ -691,13 +720,10 @@ class Game:
                 continue
 
             monster_id = monster.monster_id
-
             if monster_id not in monster_dict:
-                # 预览战斗
                 result = self._combat_system.preview_battle(
                     self._player.stats, monster.stats
                 )
-
                 monster_dict[monster_id] = {
                     'name': monster.stats.name_cn or monster.stats.name or monster_id,
                     'hp': monster.stats.hp,
@@ -711,10 +737,7 @@ class Game:
             else:
                 monster_dict[monster_id]['count'] += 1
 
-        # 转换为列表
         monster_list = list(monster_dict.values())
-
-        # 更新面板
         self._monster_info_panel.update_data(
             floor=self._floor_manager.current_level,
             monster_info_list=monster_list
@@ -724,7 +747,11 @@ class Game:
         """切换暂停状态"""
         current = self._state_machine.current_state
 
-        # 如果怪物信息面板打开，先关闭它
+        # 商店状态下按 ESC 关闭商店
+        if current == GameState.SHOP:
+            self._close_shop()
+            return
+
         if current == GameState.PLAYING:
             if self._monster_info_panel and self._monster_info_panel.is_visible():
                 self._monster_info_panel.toggle()
@@ -772,19 +799,35 @@ class Game:
                 self._running = False
 
     def confirm(self) -> None:
-        """确认/交互（由输入处理器调用）"""
+        """确认/交互"""
         current = self._state_machine.current_state
 
         if current == GameState.MENU:
             self.menu_confirm()
         elif current == GameState.PAUSED:
             self.menu_confirm()
-        elif current == GameState.DIALOG:
-            # TODO: 推进对话
-            pass
         elif current == GameState.SHOP:
-            # TODO: 确认购买
-            pass
+            self.shop_confirm()
+
+    def shop_select_up(self) -> None:
+        """商店选择上一项"""
+        if self._state_machine.current_state == GameState.SHOP and self._shop_ui:
+            self._shop_ui.select_up()
+
+    def shop_select_down(self) -> None:
+        """商店选择下一项"""
+        if self._state_machine.current_state == GameState.SHOP and self._shop_ui:
+            self._shop_ui.select_down()
+
+    def shop_confirm(self) -> None:
+        """商店确认购买"""
+        if self._state_machine.current_state == GameState.SHOP and self._shop_ui:
+            self._shop_ui.confirm()
+
+    def shop_close(self) -> None:
+        """商店关闭"""
+        if self._state_machine.current_state == GameState.SHOP:
+            self._close_shop()
 
     def start_new_game(self) -> None:
         """开始新游戏"""
@@ -821,10 +864,33 @@ class Game:
             "menu_select_down"
         )
 
+        # 怪物信息面板
         self._input.bind_key(
             pygame.K_LCTRL, KeyAction.PRESS,
             self.toggle_monster_info,
             "toggle_monster_info_ctrl"
+        )
+
+        # 商店按键（在商店状态下）
+        self._input.bind_key(
+            pygame.K_UP, KeyAction.PRESS,
+            self.shop_select_up,
+            "shop_select_up"
+        )
+        self._input.bind_key(
+            pygame.K_DOWN, KeyAction.PRESS,
+            self.shop_select_down,
+            "shop_select_down"
+        )
+        self._input.bind_key(
+            pygame.K_RETURN, KeyAction.PRESS,
+            self.shop_confirm,
+            "shop_confirm"
+        )
+        self._input.bind_key(
+            pygame.K_SPACE, KeyAction.PRESS,
+            self.shop_confirm,
+            "shop_confirm_space"
         )
 
     def _quit_from_menu(self) -> None:
@@ -879,6 +945,23 @@ class Game:
                 width=self._display.width - HUD.WIDTH - 20
             )
 
+        # 初始化商店系统
+        if self._shop_manager is None:
+            self._shop_manager = ShopManager(
+                item_manager=self._floor_manager._item_manager
+            )
+            self._shop_manager.load_from_json("data/entities/shops.json")
+
+        if self._shop_ui is None:
+            # 使用渲染表面的尺寸，而不是窗口尺寸
+            render_w = self._display.render_surface.get_width()
+            render_h = self._display.render_surface.get_height()
+            self._shop_ui = ShopUI(
+                screen_width=render_w,
+                screen_height=render_h
+            )
+
     def _on_enter_paused(self) -> None:
         """进入暂停状态"""
         pass  # 输入处理器保持启用，按键回调会根据状态处理
+

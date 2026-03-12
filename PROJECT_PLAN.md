@@ -157,7 +157,7 @@ assets/sprites/playerA/
 | 3.3 | ✅ 完成 | `systems/combat.py` | 战斗逻辑 |
 | 3.4 | ✅ 完成 | `data/entities/monsters.json` | 怪物数据 |
 
-### Phase 4: 物品和商店 ✅ 进行中
+### Phase 4: 物品和商店 ✅ 完成
 
 | 步骤 | 状态 | 文件 | 说明 |
 |-----|------|------|------|
@@ -167,8 +167,10 @@ assets/sprites/playerA/
 | 4.1c | ✅ 完成 | `assets/sprites/items/` | 物品资源 (钥匙/药水/宝石/武器/防具) |
 | 4.1d | ✅ 完成 | `engine/game.py` | 宝石系统 (红宝石+攻击, 蓝宝石+防御) |
 | 4.2 | ⏳ 待做 | `systems/inventory.py` | 背包系统 |
-| 4.3 | ⏳ 待做 | `systems/shop.py` | 商店系统 |
-| 4.4 | ⏳ 待做 | `ui/shop_ui.py` | 商店界面 |
+| 4.3 | ✅ 完成 | `systems/shop.py` | 商店系统 (数据管理、交易逻辑) |
+| 4.4 | ✅ 完成 | `ui/shop_ui.py` | 商店界面 (物品列表、属性升级) |
+| 4.5 | ✅ 完成 | `engine/game.py` | 商店集成 (状态切换、ESC键修复) |
+| 4.6 | ⏳ 待做 | - | 商店优化 (一次性购买限制) |
 
 ### Phase 5: 界面和完善 ✅ 进行中
 
@@ -373,6 +375,19 @@ class TileType(Enum):
 ---
 
 ## 更新日志
+
+### 2026-03-12
+- 实现商店系统：
+  - 商店数据管理 (ShopData, ShopItem, ShopUpgrade)
+  - 商店管理器 (ShopManager, JSON加载)
+  - 交易逻辑 (购买物品、属性升级)
+  - 商店界面 (ShopUI)
+  - 地图商店实体支持
+  - 游戏状态切换 (PLAYING ↔ SHOP)
+- 修复问题：
+  - 商店显示位置问题： 使用渲染表面尺寸
+  - 商店不自动打开： 移动检测逻辑修复
+  - ESC键无限递归: 回调循环修复
 
 ### 2026-03-11 (晚上)
 - 实现宝石系统：

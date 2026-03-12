@@ -1,0 +1,69 @@
+{
+  "shops": {
+    "general_store": {
+      "name": "General Store",
+      "name_cn": "杂货店",
+      "description": "出售钥匙和药水",
+      "items": [
+        {"id": "yellow_key", "price": 10},
+        {"id": "blue_key", "price": 50},
+        {"id": "red_key", "price": 100},
+        {"id": "red_potion", "price": 50},
+        {"id": "blue_potion", "price": 150}
+      ],
+      "upgrades": []
+    },
+    "weapon_shop": {
+      "name": "Weapon Shop",
+      "name_cn": "武器店",
+      "description": "出售武器装备",
+      "items": [
+        {"id": "sword_1", "price": 100},
+        {"id": "sword_2", "price": 300},
+        {"id": "sword_3", "price": 800},
+        {"id": "sword_4", "price": 2000}
+      ],
+      "upgrades": []
+    },
+    "armor_shop": {
+      "name": "Armor Shop",
+      "name_cn": "防具店",
+      "description": "出售防具装备",
+      "items": [
+        {"id": "shield_1", "price": 100},
+        {"id": "shield_2", "price": 300},
+        {"id": "shield_3", "price": 800},
+        {"id": "shield_4", "price": 2000}
+      ],
+      "upgrades": []
+    },
+    "attribute_dealer": {
+      "name": "Attribute Dealer",
+      "name_cn": "属性商人",
+      "description": "用金币提升属性",
+      "items": [
+        {"id": "red_gem", "price": 150},
+        {"id": "blue_gem", "price": 150}
+      ],
+      "upgrades": [
+        {"type": "attack", "amount": 5, "price": 100, "name": "攻击力+5", "name_cn": "ATK+5"},
+        {"type": "defense", "amount": 5, "price": 100, "name": "防御力+5", "name_cn": "DEF+5"},
+        {"type": "max_hp", "amount": 100, "price": 50, "name": "最大HP+100", "name_cn": "MaxHP+100"},
+        {"type": "max_hp", "amount": 500, "price": 200, "name": "最大HP+500", "name_cn": "MaxHP+500"}
+      ]
+    },
+    "premium_shop": {
+      "name": "Premium Shop",
+      "name_cn": "高级商店",
+      "description": "出售稀有物品",
+      "items": [
+        {"id": "green_key", "price": 200},
+        {"id": "green_potion", "price": 300},
+        {"id": "green_gem", "price": 250},
+        {"id": "sword_5", "price": 5000},
+        {"id": "shield_5", "price": 5000}
+      ],
+      "upgrades": []
+    }
+  }
+}
