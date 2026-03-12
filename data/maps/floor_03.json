@@ -55,6 +55,8 @@
     {"type": "item", "id": "gold_coin_large", "x": 6, "y": 15, "data": {}},
     {"type": "item", "id": "gold_coin_large", "x": 18, "y": 15, "data": {}},
     {"type": "item", "id": "life_crystal", "x": 12, "y": 13, "data": {}},
+    {"type": "item", "id": "red_gem", "x": 2, "y": 2, "data": {}},
+    {"type": "item", "id": "blue_gem", "x": 22, "y": 2, "data": {}},
 
     {"type": "door", "id": "yellow", "x": 3, "y": 6, "data": {}},
     {"type": "door", "id": "yellow", "x": 21, "y": 6, "data": {}}

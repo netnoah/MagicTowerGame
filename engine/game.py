@@ -634,6 +634,12 @@ class Game:
                     self._show_message(f"Got {changes['experience']} EXP!", (200, 150, 255))
                 elif changes.get('max_hp', 0) > 0:
                     self._show_message(f"Max HP+{changes['max_hp']}!", (255, 100, 200))
+                elif changes.get('attack', 0) > 0 and changes.get('defense', 0) > 0:
+                    self._show_message(f"Got {item_name}: ATK+{changes['attack']} DEF+{changes['defense']}!", (255, 200, 100))
+                elif changes.get('attack', 0) > 0:
+                    self._show_message(f"Got {item_name}: ATK+{changes['attack']}!", (255, 100, 100))
+                elif changes.get('defense', 0) > 0:
+                    self._show_message(f"Got {item_name}: DEF+{changes['defense']}!", (100, 150, 255))
                 else:
                     self._show_message(f"Got {item_name}!", (100, 255, 100))
             else:

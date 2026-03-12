@@ -137,7 +137,7 @@ SPRITE_PIVOT_Y: int = 480  # 脚部在图片中的 Y 坐标
   - [x] 第1层：入门层（简单怪物 + 基础物品）
   - [x] 第2层：钥匙门层（黄/蓝钥匙门）
   - [x] 第3层：幽灵走廊（战斗策略）
-- [x] 4.1c 物品资源配置 ✅ NEW
+- [x] 4.1c 物品资源配置 ✅ 完成
   - [x] 添加物品精灵资源 (`assets/sprites/items/`)
   - [x] 更新 items.json 匹配资源文件名
   - [x] 更新 items.py 支持 green_keys
@@ -147,6 +147,12 @@ SPRITE_PIVOT_Y: int = 480  # 脚部在图片中的 Y 坐标
     - 药水: red_potion, blue_potion, green_potion, brown_potion (4种)
     - 宝石: red_gem, blue_gem, green_gem, brown_gem (4种)
     - 武器: sword_1 ~ sword_5 (5种)
+    - 防具: shield_1 ~ shield_5 (5种)
+- [x] 4.1d 宝石系统 ✅ 完成 (2026-03-11)
+  - [x] 红宝石：攻击力+3
+  - [x] 蓝宝石：防御力+3
+  - [x] 在前三层地图添加宝石
+  - [x] 拾取消息显示属性增加
 - [ ] 4.2 背包系统
   - [ ] 背包管理
   - [ ] 物品使用
