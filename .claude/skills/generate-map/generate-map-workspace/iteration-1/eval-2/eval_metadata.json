@@ -1,0 +1,53 @@
+{
+  "eval_id": 2,
+  "eval_name": "regenerate-floor-5",
+  "prompt": "regenerate floor 5 map",
+  "assertions": [
+    {
+      "name": "json_valid",
+      "description": "Output is valid JSON that can be parsed",
+      "type": "json_valid",
+      "expected": true
+    },
+    {
+      "name": "one_floor_generated",
+      "description": "One map file generated: floor_05.json",
+      "type": "file_count",
+      "expected": 1,
+      "file_pattern": "*.json"
+    },
+    {
+      "name": "correct_dimensions",
+      "description": "Map has correct dimensions (25x19 tiles)",
+      "type": "tile_dimensions",
+      "expected": {"width": 25, "height": 19}
+    },
+    {
+      "name": "both_stairs",
+      "description": "Floor 5 has both STAIRS_UP and STAIRS_DOWN",
+      "type": "tile_presence",
+      "floor": 5,
+      "tile_types": [20, 21],
+      "should_exist": true
+    },
+    {
+      "name": "entities_on_floor_tiles",
+      "description": "All entities are placed on floor tiles (type 1), not walls",
+      "type": "entity_placement",
+      "expected": "all_on_floor"
+    },
+    {
+      "name": "mid_level_monsters",
+      "description": "Monsters are appropriate for mid-level floor (skeleton, ghost, orc, wizard)",
+      "type": "monster_tier",
+      "floor": 5,
+      "expected": "mid_level"
+    },
+    {
+      "name": "connectivity",
+      "description": "All floor tiles are reachable from player_start",
+      "type": "connectivity",
+      "expected": "all_reachable"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "skill_name": "generate-map",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "重新创建前三层地图",
+      "expected_output": "Generate floor_01.json, floor_02.json, floor_03.json with valid layouts, proper difficulty progression, and correct door/key placement",
+      "files": [],
+      "assertions": []
+    },
+    {
+      "id": 2,
+      "prompt": "regenerate floor 5 map",
+      "expected_output": "Generate floor_05.json with both stairs (up and down), mid-level monsters, balanced key/door ratio",
+      "files": [],
+      "assertions": []
+    },
+    {
+      "id": 3,
+      "prompt": "generate all 21 floors with progressive difficulty",
+      "expected_output": "Generate all floor_01.json through floor_21.json with increasing difficulty, boss on floor 21, proper stair placement for each floor",
+      "files": [],
+      "assertions": []
+    }
+  ]
+}
