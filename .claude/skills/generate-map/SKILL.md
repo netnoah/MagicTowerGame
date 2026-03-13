@@ -96,11 +96,23 @@ Vacuum Abhorrence: Every enclosed room (behind a door) MUST contain at least one
 
 ## Door Design Rules (CRITICAL)
 
+**The Mandatory Path Rule (MOST IMPORTANT):**
+A door MUST block a critical path. One of the following MUST be true:
+1. **Stair Access**: Door blocks the ONLY path to stairs (player MUST open door to progress)
+2. **Critical Item**: Door blocks a REQUIRED item (e.g., key needed for later floors, essential equipment)
+3. **Key-Door Chain**: Door A blocks key for Door B, which blocks stairs (creates dependency chain)
+
+**FORBIDDEN Door Placements:**
+- Side rooms with optional rewards (player can skip and still progress)
+- Parallel paths where middle corridor bypasses all doors
+- Doors that don't block any critical progression element
+
 **The Cut-Vertex Test (MANDATORY):**
 A door must be a mandatory bridge. If the door is treated as a WALL, the area behind it MUST be unreachable.
 - NO diagonal bypasses (check 4-connected neighbors)
 - NO side corridors that go around the door
 - Test: Replace door tile with WALL in your mind, then flood-fill from player_start - the area behind should NOT be reachable
+- **ADDITIONAL TEST**: If stairs are reachable WITHOUT opening the door, the door placement is INVALID
 
 **The Chokepoint Template (MANDATORY):**
 Door must be flanked by walls: [Wall, Door, Wall] or its vertical equivalent.
@@ -134,6 +146,22 @@ YOU MUST validate using Python code BEFORE writing any map file. If ANY check fa
 
 ```python
 import json
+from collections import deque
+
+def flood_fill(tiles, start_x, start_y, blocked_positions=set()):
+    """Returns set of reachable positions from start, treating blocked_positions as walls"""
+    height, width = len(tiles), len(tiles[0])
+    visited = set()
+    queue = deque([(start_x, start_y)])
+
+    while queue:
+        x, y = queue.popleft()
+        if (x, y) in visited or (x, y) in blocked_positions:
+            continue
+        if 0 <= x < width and 0 <= y < height and tiles[y][x] != 2:
+            visited.add((x, y))
+            queue.extend([(x+1,y), (x-1,y), (x,y+1), (x,y-1)])
+    return visited
 
 with open('data/maps/floor_XX.json', encoding='utf-8') as f:
     data = json.load(f)
@@ -142,15 +170,32 @@ with open('data/maps/floor_XX.json', encoding='utf-8') as f:
 for e in data['entities']:
     x, y = e['x'], e['y']
     tile = data['tiles'][y][x]
-    if tile != 1:  # Must be FLOOR (1)
+    if tile != 1:
         print(f"ERROR: {e['type']} {e['id']} at ({x},{y}) is on tile={tile}, not FLOOR")
 
-# CHECK 2: Door Isolation (Cut-Vertex Test)
-# For each door, verify that treating it as WALL makes the area behind unreachable
-# TODO: Implement flood-fill test
+# CHECK 2: Door Purpose Test (CRITICAL)
+# For each door, verify that treating it as WALL blocks stairs or critical items
+doors = [e for e in data['entities'] if e['type'] == 'door']
+stairs_pos = None
+for y, row in enumerate(data['tiles']):
+    for x, tile in enumerate(row):
+        if tile == 20:  # STAIRS_DOWN
+            stairs_pos = (x, y)
+            break
+
+for door in doors:
+    # Test: Can player reach stairs WITHOUT opening this door?
+    blocked = {(door['x'], door['y'])}
+    reachable = flood_fill(data['tiles'], data['player_start'][0], data['player_start'][1], blocked)
+
+    if stairs_pos and stairs_pos in reachable:
+        print(f"WARNING: Door at ({door['x']},{door['y']}) is BYPASSABLE - stairs still reachable!")
+        print(f"  -> This door has NO PURPOSE. Either remove it or redesign layout.")
 
 # CHECK 3: Stair Logic
-# Floor 1: only STAIRS_DOWN(20); Floor 21: only STAIRS_UP(21); Others: both
+has_down = any(tile == 20 for row in data['tiles'] for tile in row)
+has_up = any(tile == 21 for row in data['tiles'] for tile in row)
+print(f"Stairs: DOWN={has_down}, UP={has_up}")
 ```
 
 ### Required Checks:
