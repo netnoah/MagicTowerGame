@@ -60,45 +60,102 @@ Identify which floor group to generate:
 
 ### Step 2: Design Blueprint (AI Task)
 
-Create a blueprint JSON file describing the map intent:
+Create a blueprint JSON file describing the map intent.
+
+## CRITICAL REQUIREMENTS
+
+### Requirement 1: Minimum 9 Regions Per Floor
+
+Each floor MUST have at least 9 regions to create meaningful exploration. A region represents a distinct area that can contain monsters, items, or other content.
+
+**Region distribution pattern:**
+- 1 entrance region (player spawn)
+- 4-5 pathway regions (main exploration areas with monsters)
+- 2-3 treasure regions (locked areas with rewards)
+- 1-2 challenge regions (optional difficult areas with high rewards)
+
+### Requirement 2: Every Region Separated by Doors
+
+Each region transition MUST be controlled by a door. This creates a lock-and-key progression system.
+
+**Door placement rules:**
+- Every pathway region after entrance requires a door
+- Every treasure region requires a door (locked by key)
+- Every challenge region requires a door
+- The unlock_sequence MUST have an entry for EACH door
+
+**Example for 9 regions:**
+- 1 door from entrance to pathway_1
+- 1 door from pathway_1 to pathway_2
+- 1 door from pathway_2 to treasure_1 (requires key found earlier)
+- ... and so on for all 9 regions
+
+### Requirement 3: Surprise Elements Required
+
+Every floor MUST include at least 2 surprise elements. Surprise types:
+
+| Type | Description | Example |
+|------|-------------|---------|
+| `guardian` | Strong monster guarding valuable loot | Guardian tier 3 protecting a sword upgrade |
+| `trap` | Hidden dangerous monster | Tier 2-3 monster that appears unexpectedly |
+| `surprise_shop` | Unexpected merchant in remote area | Shop in a treasure room |
+
+**Surprise distribution per floor:**
+- Floors 1-5: At least 1 guardian + 1 trap
+- Floors 6-10: At least 2 guardians + 1 trap
+- Floors 11-15: At least 2 guardians + 2 traps
+- Floors 16-21: At least 3 guardians + 2 traps
+
+## Blueprint Format
 
 ```json
 {
   "group": 1,
-  "floors_range": [1, 5],
+  "floors_range": [1, 1],
   "difficulty_tier": "easy",
   "global_theme": "Introduction to the Tower",
   "floors": [
     {
       "floor": 1,
       "name": "Tower Entrance",
-      "layout": {"pattern": "simple_rooms", "room_count": 3},
+      "layout": {"pattern": "simple_rooms", "room_count": 9},
       "regions": [
-        {"id": "start", "type": "entrance"},
-        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 3}}},
-        {"id": "vault", "type": "treasure", "access": {"requires": "yellow_key"}, "content": {"items": ["red_gem"]}}
+        {"id": "entrance", "type": "entrance"},
+        {"id": "hall_1", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}}},
+        {"id": "hall_2", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}, "items": ["yellow_key"]}},
+        {"id": "hall_3", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 3}}},
+        {"id": "hall_4", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}, "items": ["blue_key"]}},
+        {"id": "side_room", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}}},
+        {"id": "vault_1", "type": "treasure", "access": {"requires": "yellow_key"}, "content": {"items": ["red_gem", "red_potion"]}},
+        {"id": "vault_2", "type": "treasure", "access": {"requires": "blue_key"}, "content": {"items": ["sword_1", "blue_gem"]}},
+        {"id": "challenge", "type": "boss", "access": {"requires": "yellow_key"}, "content": {"items": ["shield_1"]}}
       ],
       "surprises": [
-        {"type": "guardian", "location": "main", "guardian_tier": 2, "reward": ["blue_key"]}
+        {"type": "guardian", "location": "vault_1", "guardian_tier": 2, "reward": ["red_key"]},
+        {"type": "trap", "location": "hall_3"}
       ],
       "shops": [
-        {"id": "weapon_shop", "region": "start"}
+        {"id": "potion_shop", "region": "entrance"}
       ]
     }
   ],
   "unlock_sequence": [
-    {"floor": 1, "door": "yellow", "key_at": "start", "target_region": "vault"}
+    {"floor": 1, "door": "yellow", "key_at": "hall_2", "target_region": "hall_3"},
+    {"floor": 1, "door": "yellow", "key_at": "hall_2", "target_region": "vault_1"},
+    {"floor": 1, "door": "yellow", "key_at": "hall_2", "target_region": "challenge"},
+    {"floor": 1, "door": "blue", "key_at": "hall_4", "target_region": "vault_2"}
   ]
 }
 ```
 
-**Blueprint Elements:**
-- `regions`: Define areas with purpose (entrance, pathway, treasure, boss)
-- `access`: Lock regions behind keys/requirements
-- `content`: Specify monsters (tier, count) and items
-- `unlock_sequence`: Define the order players unlock doors (places doors + keys)
-- `surprises`: Guardian encounters (monster + reward) or traps
-- `shops`: Place shop NPCs in regions
+### Blueprint Elements:
+
+- `regions`: Minimum 9 regions with distinct purposes
+- `access`: Lock regions behind specific keys
+- `content`: Specify monsters (tier, count) and items for each region
+- `unlock_sequence`: MUST have one entry per door (typically 8+ entries for 9 regions)
+- `surprises`: MUST include at least 2 surprise elements
+- `shops`: Optional, place shop NPCs in accessible regions
 
 ### Step 3: Run Python Generator
 
@@ -160,14 +217,14 @@ The generator produces complete maps with:
 
 ### Unlock Sequence
 
-Define door-key relationships:
+Define door-key relationships - ONE ENTRY PER DOOR:
 
 ```json
 {
   "floor": 1,
   "door": "yellow",
-  "key_at": "start",
-  "target_region": "vault",
+  "key_at": "entrance",
+  "target_region": "hall_1",
   "key_count": 1
 }
 ```
@@ -176,15 +233,15 @@ Valid door colors: `yellow`, `blue`, `red`, `green`
 
 ### Surprise Types
 
-| Type | Description | Fields |
-|------|-------------|--------|
+| Type | Description | Required Fields |
+|------|-------------|-----------------|
 | `guardian` | Monster guarding loot | `guardian_tier`, `reward[]`, `location` |
 | `trap` | Hidden dangerous monster | `location` |
 
 ### Shop Configuration
 
 ```json
-{"id": "weapon_shop", "region": "start"}
+{"id": "weapon_shop", "region": "entrance"}
 ```
 
 ## Tile Type IDs
@@ -201,55 +258,62 @@ Valid door colors: `yellow`, `blue`, `red`, `green`
 ```json
 {"type": "monster", "id": "<monster_id>", "x": <0-24>, "y": <0-18>, "data": {}}
 {"type": "item", "id": "<item_id>", "x": <0-24>, "y": <0-18>, "data": {}}
-{"type": "door", "id": "<color>_door", "x": <0-24>, "y": <0-18>, "data": {}}
+{"type": "door", "id": "<color>", "x": <0-24>, "y": <0-18>, "data": {}}
 {"type": "shop", "id": "<shop_id>", "x": <0-24>, "y": <0-18>, "data": {}}
 ```
 
-## Example Usage
+## Complete Example: Floor 1 Blueprint
 
-### Generate Floors 1-5
+This example demonstrates all three requirements: 9 regions, 8 doors, 2 surprises.
 
-```bash
-# 1. Design blueprint (AI creates this)
-cat > .temp/blueprint_f1-5.json << 'EOF'
+```json
 {
   "group": 1,
-  "floors_range": [1, 5],
+  "floors_range": [1, 1],
   "difficulty_tier": "easy",
-  "global_theme": "Introduction",
+  "global_theme": "Tower Entrance - First Steps",
   "floors": [
     {
       "floor": 1,
       "name": "Entrance Hall",
-      "layout": {"pattern": "simple_rooms", "room_count": 3},
+      "layout": {"pattern": "simple_rooms", "room_count": 9},
       "regions": [
-        {"id": "start", "type": "entrance"},
-        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 3}, "items": ["yellow_key"]}},
-        {"id": "vault", "type": "treasure", "access": {"requires": "yellow_key"}, "content": {"items": ["red_gem"]}}
+        {"id": "entrance", "type": "entrance"},
+        {"id": "corridor_1", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}}},
+        {"id": "corridor_2", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}, "items": ["yellow_key"]}},
+        {"id": "corridor_3", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 3}}},
+        {"id": "corridor_4", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}, "items": ["blue_key"]}},
+        {"id": "side_chamber", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}}},
+        {"id": "treasury", "type": "treasure", "access": {"requires": "yellow_key"}, "content": {"items": ["red_gem", "red_potion", "yellow_key"]}},
+        {"id": "armory", "type": "treasure", "access": {"requires": "blue_key"}, "content": {"items": ["sword_1", "blue_gem"]}},
+        {"id": "guardian_room", "type": "boss", "access": {"requires": "yellow_key"}, "content": {"items": ["shield_1", "red_key"]}}
       ],
       "surprises": [
-        {"type": "guardian", "location": "main", "guardian_tier": 2, "reward": ["blue_key"]}
+        {"type": "guardian", "location": "guardian_room", "guardian_tier": 2, "reward": ["red_key"]},
+        {"type": "trap", "location": "corridor_3"}
       ],
       "shops": [
-        {"id": "potion_shop", "region": "start"}
+        {"id": "potion_shop", "region": "entrance"}
       ]
     }
   ],
   "unlock_sequence": [
-    {"floor": 1, "door": "yellow", "key_at": "start", "target_region": "vault"}
+    {"floor": 1, "door": "yellow", "key_at": "entrance", "target_region": "corridor_1"},
+    {"floor": 1, "door": "yellow", "key_at": "corridor_2", "target_region": "corridor_3"},
+    {"floor": 1, "door": "yellow", "key_at": "corridor_2", "target_region": "corridor_4"},
+    {"floor": 1, "door": "yellow", "key_at": "corridor_2", "target_region": "side_chamber"},
+    {"floor": 1, "door": "yellow", "key_at": "corridor_2", "target_region": "treasury"},
+    {"floor": 1, "door": "blue", "key_at": "corridor_4", "target_region": "armory"},
+    {"floor": 1, "door": "yellow", "key_at": "treasury", "target_region": "guardian_room"}
   ]
 }
-EOF
-
-# 2. Run generator
-python -m tools.map_generator.generator -b .temp/blueprint_f1-5.json -o data/maps -v
-
-# 3. Verify
-ls -la data/maps/floor_01.json
 ```
 
 ## Playability Guidelines
 
+- **Region Count**: Minimum 9 regions per floor for meaningful exploration
+- **Door Coverage**: Every region transition must have a door
+- **Surprise Elements**: Include guardians and traps for engagement
 - **Difficulty Scaling**: Use appropriate monster tiers for floor group
 - **Economy**: Keys >= doors (slight surplus allows exploration)
 - **Risk/Reward**: High-tier monsters guard valuable items

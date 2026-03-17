@@ -2,60 +2,39 @@
   "group": 1,
   "floors_range": [1, 1],
   "difficulty_tier": "easy",
-  "global_theme": "Tower Entrance",
+  "global_theme": "Tower Entrance - First Steps",
   "floors": [
     {
       "floor": 1,
-      "name": "Tower Entrance",
-      "layout": {"pattern": "simple_rooms", "room_count": 4},
+      "name": "Entrance Hall",
+      "layout": {"pattern": "simple_rooms", "room_count": 9},
       "regions": [
-        {
-          "id": "entrance",
-          "type": "entrance",
-          "content": {"items": ["yellow_key"]}
-        },
-        {
-          "id": "main_hall",
-          "type": "pathway",
-          "content": {
-            "monsters": {"tier": 1, "count": 4},
-            "items": ["yellow_key", "yellow_key"]
-          }
-        },
-        {
-          "id": "east_wing",
-          "type": "treasure",
-          "access": {"requires": "yellow"},
-          "content": {
-            "monsters": {"tier": 1, "count": 2},
-            "items": ["sword_1", "red_potion"]
-          }
-        },
-        {
-          "id": "west_wing",
-          "type": "treasure",
-          "access": {"requires": "yellow"},
-          "content": {
-            "monsters": {"tier": 1, "count": 2},
-            "items": ["shield_1", "red_potion"]
-          }
-        },
-        {
-          "id": "armory",
-          "type": "treasure",
-          "access": {"requires": "yellow"},
-          "content": {
-            "monsters": {"tier": 1, "count": 2},
-            "items": ["red_gem", "blue_gem"]
-          }
-        }
+        {"id": "entrance", "type": "entrance"},
+        {"id": "corridor_1", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}}},
+        {"id": "corridor_2", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}, "items": ["yellow_key"]}},
+        {"id": "corridor_3", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 3}}},
+        {"id": "corridor_4", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}, "items": ["blue_key"]}},
+        {"id": "side_chamber", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}}},
+        {"id": "treasury", "type": "treasure", "access": {"requires": "yellow_key"}, "content": {"items": ["red_gem", "red_potion", "yellow_key"]}},
+        {"id": "armory", "type": "treasure", "access": {"requires": "blue_key"}, "content": {"items": ["sword_1", "blue_gem"]}},
+        {"id": "guardian_room", "type": "boss", "access": {"requires": "yellow_key"}, "content": {"items": ["shield_1", "red_key"]}}
       ],
-      "surprises": []
+      "surprises": [
+        {"type": "guardian", "location": "guardian_room", "guardian_tier": 2, "reward": ["red_key"]},
+        {"type": "trap", "location": "corridor_3"}
+      ],
+      "shops": [
+        {"id": "potion_shop", "region": "entrance"}
+      ]
     }
   ],
   "unlock_sequence": [
-    {"floor": 1, "door": "yellow", "key_at": "entrance", "target_region": "east_wing"},
-    {"floor": 1, "door": "yellow", "key_at": "main_hall", "target_region": "west_wing"},
-    {"floor": 1, "door": "yellow", "key_at": "main_hall", "target_region": "armory"}
+    {"floor": 1, "door": "yellow", "key_at": "entrance", "target_region": "corridor_1"},
+    {"floor": 1, "door": "yellow", "key_at": "corridor_2", "target_region": "corridor_3"},
+    {"floor": 1, "door": "yellow", "key_at": "corridor_2", "target_region": "corridor_4"},
+    {"floor": 1, "door": "yellow", "key_at": "corridor_2", "target_region": "side_chamber"},
+    {"floor": 1, "door": "yellow", "key_at": "corridor_2", "target_region": "treasury"},
+    {"floor": 1, "door": "blue", "key_at": "corridor_4", "target_region": "armory"},
+    {"floor": 1, "door": "yellow", "key_at": "treasury", "target_region": "guardian_room"}
   ]
 }

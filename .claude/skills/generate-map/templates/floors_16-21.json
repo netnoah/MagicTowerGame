@@ -7,84 +7,181 @@
     {
       "floor": 16,
       "name": "Dragon's Lair",
-      "layout": {"pattern": "cross", "room_count": 6},
+      "layout": {"pattern": "cross", "room_count": 9},
       "regions": [
-        {"id": "start", "type": "entrance"},
-        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 4, "count": 7}, "items": ["yellow_key", "red_key", "blue_potion"]}},
-        {"id": "vault", "type": "treasure", "access": {"requires": "green_key"}, "content": {"items": ["sword_4", "brown_gem"]}}
+        {"id": "entrance", "type": "entrance"},
+        {"id": "lair_entrance", "type": "pathway", "content": {"monsters": {"tier": 4, "count": 4}}},
+        {"id": "north_tunnel", "type": "pathway", "content": {"monsters": {"tier": 4, "count": 3}, "items": ["yellow_key"]}},
+        {"id": "south_tunnel", "type": "pathway", "content": {"monsters": {"tier": 4, "count": 3}, "items": ["red_key"]}},
+        {"id": "east_tunnel", "type": "pathway", "content": {"monsters": {"tier": 4, "count": 3}}},
+        {"id": "west_tunnel", "type": "pathway", "content": {"monsters": {"tier": 4, "count": 3}, "items": ["blue_key"]}},
+        {"id": "treasure_hoard", "type": "treasure", "access": {"requires": "yellow_key"}, "content": {"items": ["sword_4", "red_gem", "blue_potion"]}},
+        {"id": "armory", "type": "treasure", "access": {"requires": "blue_key"}, "content": {"items": ["shield_4", "brown_gem"]}},
+        {"id": "dragon_nest", "type": "boss", "access": {"requires": "green_key"}, "content": {"items": ["red_key", "green_gem"]}}
       ],
       "surprises": [
-        {"type": "guardian", "location": "vault", "guardian_tier": 5, "reward": ["red_key", "green_gem"]}
-      ]
+        {"type": "guardian", "location": "dragon_nest", "guardian_tier": 5, "reward": ["red_key", "green_gem"]},
+        {"type": "trap", "location": "east_tunnel"}
+      ],
+      "shops": [{"id": "potion_shop", "region": "lair_entrance"}]
     },
     {
       "floor": 17,
       "name": "Inferno Pit",
-      "layout": {"pattern": "cross", "room_count": 7},
+      "layout": {"pattern": "simple_rooms", "room_count": 9},
       "regions": [
-        {"id": "start", "type": "entrance"},
-        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 4, "count": 8}, "items": ["blue_key", "green_key", "blue_potion"]}},
-        {"id": "vault", "type": "treasure", "access": {"requires": "red_key"}, "content": {"items": ["shield_4", "brown_gem"]}}
+        {"id": "entrance", "type": "entrance"},
+        {"id": "fire_hall_1", "type": "pathway", "content": {"monsters": {"tier": 4, "count": 4}}},
+        {"id": "fire_hall_2", "type": "pathway", "content": {"monsters": {"tier": 4, "count": 3}, "items": ["blue_key"]}},
+        {"id": "fire_hall_3", "type": "pathway", "content": {"monsters": {"tier": 4, "count": 3}}},
+        {"id": "fire_hall_4", "type": "pathway", "content": {"monsters": {"tier": 4, "count": 3}, "items": ["red_key"]}},
+        {"id": "cooling_chamber", "type": "pathway", "content": {"monsters": {"tier": 4, "count": 2}}},
+        {"id": "flame_vault_1", "type": "treasure", "access": {"requires": "blue_key"}, "content": {"items": ["shield_4", "blue_potion", "brown_gem"]}},
+        {"id": "flame_vault_2", "type": "treasure", "access": {"requires": "red_key"}, "content": {"items": ["sword_5", "green_gem"]}},
+        {"id": "inferno_core", "type": "boss", "access": {"requires": "blue_key"}, "content": {"items": ["green_key"]}}
       ],
-      "surprises": []
+      "surprises": [
+        {"type": "guardian", "location": "inferno_core", "guardian_tier": 5, "reward": ["green_key"]},
+        {"type": "trap", "location": "fire_hall_3"}
+      ],
+      "shops": [{"id": "weapon_shop", "region": "entrance"}]
     },
     {
       "floor": 18,
       "name": "Void Abyss",
-      "layout": {"pattern": "cross", "room_count": 7},
+      "layout": {"pattern": "cross", "room_count": 9},
       "regions": [
-        {"id": "start", "type": "entrance"},
-        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 5, "count": 9}, "items": ["red_key", "green_key", "green_potion"]}},
-        {"id": "vault", "type": "treasure", "access": {"requires": "blue_key"}, "content": {"items": ["sword_5", "brown_gem"]}}
+        {"id": "entrance", "type": "entrance"},
+        {"id": "abyss_center", "type": "pathway", "content": {"monsters": {"tier": 5, "count": 4}}},
+        {"id": "void_north", "type": "pathway", "content": {"monsters": {"tier": 5, "count": 3}, "items": ["red_key"]}},
+        {"id": "void_south", "type": "pathway", "content": {"monsters": {"tier": 5, "count": 3}, "items": ["green_key"]}},
+        {"id": "void_east", "type": "pathway", "content": {"monsters": {"tier": 5, "count": 3}}},
+        {"id": "void_west", "type": "pathway", "content": {"monsters": {"tier": 5, "count": 3}, "items": ["blue_key"]}},
+        {"id": "rift_1", "type": "treasure", "access": {"requires": "red_key"}, "content": {"items": ["sword_5", "green_potion", "brown_gem"]}},
+        {"id": "rift_2", "type": "treasure", "access": {"requires": "blue_key"}, "content": {"items": ["shield_5", "brown_gem"]}},
+        {"id": "void_lord_chamber", "type": "boss", "access": {"requires": "blue_key"}, "content": {"items": ["green_key", "brown_gem"]}}
       ],
       "surprises": [
-        {"type": "guardian", "location": "vault", "guardian_tier": 5, "reward": ["green_key", "brown_gem"]}
-      ]
+        {"type": "guardian", "location": "void_lord_chamber", "guardian_tier": 5, "reward": ["green_key", "brown_gem"]},
+        {"type": "trap", "location": "void_east"}
+      ],
+      "shops": [{"id": "potion_shop", "region": "abyss_center"}]
     },
     {
       "floor": 19,
       "name": "Chaos Realm",
-      "layout": {"pattern": "cross", "room_count": 8},
+      "layout": {"pattern": "simple_rooms", "room_count": 9},
       "regions": [
-        {"id": "start", "type": "entrance"},
-        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 5, "count": 10}, "items": ["yellow_key", "green_key", "green_potion"]}},
-        {"id": "vault", "type": "treasure", "access": {"requires": "red_key"}, "content": {"items": ["shield_5", "brown_gem"]}}
+        {"id": "entrance", "type": "entrance"},
+        {"id": "chaos_hall_1", "type": "pathway", "content": {"monsters": {"tier": 5, "count": 5}}},
+        {"id": "chaos_hall_2", "type": "pathway", "content": {"monsters": {"tier": 5, "count": 3}, "items": ["yellow_key"]}},
+        {"id": "chaos_hall_3", "type": "pathway", "content": {"monsters": {"tier": 5, "count": 3}}},
+        {"id": "chaos_hall_4", "type": "pathway", "content": {"monsters": {"tier": 5, "count": 3}, "items": ["green_key"]}},
+        {"id": "stability_zone", "type": "pathway", "content": {"monsters": {"tier": 5, "count": 2}}},
+        {"id": "order_vault", "type": "treasure", "access": {"requires": "yellow_key"}, "content": {"items": ["sword_5", "shield_5", "brown_potion"]}},
+        {"id": "chaos_vault", "type": "treasure", "access": {"requires": "green_key"}, "content": {"items": ["brown_gem", "green_gem"]}},
+        {"id": "entropy_core", "type": "boss", "access": {"requires": "red_key"}, "content": {"items": ["red_key", "green_key"]}}
       ],
-      "surprises": []
+      "surprises": [
+        {"type": "guardian", "location": "entropy_core", "guardian_tier": 6, "reward": ["red_key", "green_key"]},
+        {"type": "trap", "location": "chaos_hall_3"}
+      ],
+      "shops": [{"id": "potion_shop", "region": "chaos_hall_1"}]
     },
     {
       "floor": 20,
       "name": "Throne of Darkness",
-      "layout": {"pattern": "cross", "room_count": 8},
+      "layout": {"pattern": "cross", "room_count": 9},
       "regions": [
-        {"id": "start", "type": "entrance"},
-        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 5, "count": 11}, "items": ["red_key", "green_key", "brown_potion"]}},
-        {"id": "vault", "type": "treasure", "access": {"requires": "blue_key"}, "content": {"items": ["sword_5", "shield_5", "brown_gem"]}}
+        {"id": "entrance", "type": "entrance"},
+        {"id": "throne_approach", "type": "pathway", "content": {"monsters": {"tier": 5, "count": 5}}},
+        {"id": "north_guard", "type": "pathway", "content": {"monsters": {"tier": 5, "count": 3}, "items": ["red_key"]}},
+        {"id": "south_guard", "type": "pathway", "content": {"monsters": {"tier": 5, "count": 3}, "items": ["green_key"]}},
+        {"id": "east_guard", "type": "pathway", "content": {"monsters": {"tier": 5, "count": 3}}},
+        {"id": "west_guard", "type": "pathway", "content": {"monsters": {"tier": 5, "count": 3}, "items": ["blue_key"]}},
+        {"id": "armory_1", "type": "treasure", "access": {"requires": "red_key"}, "content": {"items": ["sword_5", "shield_5", "brown_potion"]}},
+        {"id": "armory_2", "type": "treasure", "access": {"requires": "blue_key"}, "content": {"items": ["brown_gem", "green_gem"]}},
+        {"id": "dark_throne", "type": "boss", "access": {"requires": "blue_key"}, "content": {"items": ["green_key", "master_key"]}}
       ],
       "surprises": [
-        {"type": "guardian", "location": "vault", "guardian_tier": 5, "reward": ["green_key", "master_key"]}
-      ]
+        {"type": "guardian", "location": "dark_throne", "guardian_tier": 6, "reward": ["green_key", "master_key"]},
+        {"type": "trap", "location": "east_guard"}
+      ],
+      "shops": [{"id": "potion_shop", "region": "throne_approach"}]
     },
     {
       "floor": 21,
       "name": "Demon Lord's Domain",
       "layout": {"pattern": "cross", "room_count": 9},
       "regions": [
-        {"id": "start", "type": "entrance"},
-        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 6, "count": 12}, "items": ["red_key", "green_key", "brown_potion"]}},
-        {"id": "boss", "type": "boss", "access": {"requires": "red_key"}, "content": {"monsters": {"tier": 6, "count": 1}, "items": []}}
+        {"id": "entrance", "type": "entrance"},
+        {"id": "domain_entrance", "type": "pathway", "content": {"monsters": {"tier": 6, "count": 5}}},
+        {"id": "north_domain", "type": "pathway", "content": {"monsters": {"tier": 6, "count": 3}, "items": ["red_key"]}},
+        {"id": "south_domain", "type": "pathway", "content": {"monsters": {"tier": 6, "count": 3}, "items": ["green_key"]}},
+        {"id": "east_domain", "type": "pathway", "content": {"monsters": {"tier": 6, "count": 3}}},
+        {"id": "west_domain", "type": "pathway", "content": {"monsters": {"tier": 6, "count": 3}}},
+        {"id": "final_armory", "type": "treasure", "access": {"requires": "red_key"}, "content": {"items": ["brown_potion", "brown_gem"]}},
+        {"id": "final_vault", "type": "treasure", "access": {"requires": "green_key"}, "content": {"items": ["brown_gem", "green_gem"]}},
+        {"id": "boss_room", "type": "boss", "access": {"requires": "red_key"}, "content": {"monsters": {"tier": 6, "count": 1}, "items": []}}
       ],
       "surprises": [
-        {"type": "final_boss", "location": "boss", "guardian_tier": 6}
-      ]
+        {"type": "guardian", "location": "boss_room", "guardian_tier": 6, "reward": []},
+        {"type": "trap", "location": "east_domain"}
+      ],
+      "shops": [{"id": "final_shop", "region": "domain_entrance"}]
     }
   ],
   "unlock_sequence": [
-    {"floor": 16, "door": "green", "key_at": "start", "target_region": "vault"},
-    {"floor": 17, "door": "red", "key_at": "main", "target_region": "vault"},
-    {"floor": 18, "door": "blue", "key_at": "start", "target_region": "vault"},
-    {"floor": 19, "door": "yellow", "key_at": "start", "target_region": "main"},
-    {"floor": 20, "door": "blue", "key_at": "main", "target_region": "vault"},
-    {"floor": 21, "door": "red", "key_at": "main", "target_region": "boss"}
+    {"floor": 16, "door": "yellow", "key_at": "entrance", "target_region": "lair_entrance"},
+    {"floor": 16, "door": "yellow", "key_at": "north_tunnel", "target_region": "north_tunnel"},
+    {"floor": 16, "door": "yellow", "key_at": "north_tunnel", "target_region": "south_tunnel"},
+    {"floor": 16, "door": "yellow", "key_at": "north_tunnel", "target_region": "east_tunnel"},
+    {"floor": 16, "door": "yellow", "key_at": "north_tunnel", "target_region": "west_tunnel"},
+    {"floor": 16, "door": "yellow", "key_at": "north_tunnel", "target_region": "treasure_hoard"},
+    {"floor": 16, "door": "blue", "key_at": "west_tunnel", "target_region": "armory"},
+    {"floor": 16, "door": "green", "key_at": "armory", "target_region": "dragon_nest"},
+
+    {"floor": 17, "door": "blue", "key_at": "entrance", "target_region": "fire_hall_1"},
+    {"floor": 17, "door": "blue", "key_at": "fire_hall_2", "target_region": "fire_hall_3"},
+    {"floor": 17, "door": "blue", "key_at": "fire_hall_2", "target_region": "fire_hall_4"},
+    {"floor": 17, "door": "blue", "key_at": "fire_hall_2", "target_region": "cooling_chamber"},
+    {"floor": 17, "door": "blue", "key_at": "fire_hall_2", "target_region": "flame_vault_1"},
+    {"floor": 17, "door": "red", "key_at": "fire_hall_4", "target_region": "flame_vault_2"},
+    {"floor": 17, "door": "blue", "key_at": "flame_vault_1", "target_region": "inferno_core"},
+
+    {"floor": 18, "door": "yellow", "key_at": "entrance", "target_region": "abyss_center"},
+    {"floor": 18, "door": "yellow", "key_at": "void_north", "target_region": "void_north"},
+    {"floor": 18, "door": "yellow", "key_at": "void_north", "target_region": "void_south"},
+    {"floor": 18, "door": "yellow", "key_at": "void_north", "target_region": "void_east"},
+    {"floor": 18, "door": "yellow", "key_at": "void_north", "target_region": "void_west"},
+    {"floor": 18, "door": "red", "key_at": "void_north", "target_region": "rift_1"},
+    {"floor": 18, "door": "blue", "key_at": "void_west", "target_region": "rift_2"},
+    {"floor": 18, "door": "blue", "key_at": "rift_2", "target_region": "void_lord_chamber"},
+
+    {"floor": 19, "door": "yellow", "key_at": "entrance", "target_region": "chaos_hall_1"},
+    {"floor": 19, "door": "yellow", "key_at": "chaos_hall_2", "target_region": "chaos_hall_3"},
+    {"floor": 19, "door": "yellow", "key_at": "chaos_hall_2", "target_region": "chaos_hall_4"},
+    {"floor": 19, "door": "yellow", "key_at": "chaos_hall_2", "target_region": "stability_zone"},
+    {"floor": 19, "door": "yellow", "key_at": "chaos_hall_2", "target_region": "order_vault"},
+    {"floor": 19, "door": "green", "key_at": "chaos_hall_4", "target_region": "chaos_vault"},
+    {"floor": 19, "door": "red", "key_at": "chaos_vault", "target_region": "entropy_core"},
+
+    {"floor": 20, "door": "yellow", "key_at": "entrance", "target_region": "throne_approach"},
+    {"floor": 20, "door": "yellow", "key_at": "north_guard", "target_region": "north_guard"},
+    {"floor": 20, "door": "yellow", "key_at": "north_guard", "target_region": "south_guard"},
+    {"floor": 20, "door": "yellow", "key_at": "north_guard", "target_region": "east_guard"},
+    {"floor": 20, "door": "yellow", "key_at": "north_guard", "target_region": "west_guard"},
+    {"floor": 20, "door": "red", "key_at": "north_guard", "target_region": "armory_1"},
+    {"floor": 20, "door": "blue", "key_at": "west_guard", "target_region": "armory_2"},
+    {"floor": 20, "door": "blue", "key_at": "armory_2", "target_region": "dark_throne"},
+
+    {"floor": 21, "door": "yellow", "key_at": "entrance", "target_region": "domain_entrance"},
+    {"floor": 21, "door": "yellow", "key_at": "north_domain", "target_region": "north_domain"},
+    {"floor": 21, "door": "yellow", "key_at": "north_domain", "target_region": "south_domain"},
+    {"floor": 21, "door": "yellow", "key_at": "north_domain", "target_region": "east_domain"},
+    {"floor": 21, "door": "yellow", "key_at": "north_domain", "target_region": "west_domain"},
+    {"floor": 21, "door": "red", "key_at": "north_domain", "target_region": "final_armory"},
+    {"floor": 21, "door": "green", "key_at": "south_domain", "target_region": "final_vault"},
+    {"floor": 21, "door": "red", "key_at": "final_armory", "target_region": "boss_room"}
   ]
 }
