@@ -73,16 +73,108 @@ class LayoutBuilder:
             return self._generate_cross_rooms()
         elif pattern == "linear":
             return self._generate_linear_rooms(count)
+        elif pattern == "l_shape":
+            return self._generate_l_shape_rooms()
+        elif pattern == "spiral":
+            return self._generate_spiral_rooms(count)
         else:
             return self._generate_simple_rooms(count)
+
+    def _generate_l_shape_rooms(self) -> list[Room]:
+        """Generate L-shaped layout with rooms along two arms."""
+        # Randomly decide orientation
+        corner_x = random.randint(4, 8)
+        corner_y = self.height - random.randint(4, 7)
+
+        rooms = []
+
+        # Horizontal arm (bottom)
+        h_arm_length = random.randint(2, 3)
+        for i in range(h_arm_length):
+            room_w = random.randint(4, 6)
+            room_h = random.randint(3, 5)
+            x1 = 1 + i * (room_w + 1)
+            y1 = corner_y - room_h // 2
+            rooms.append(Room(id=f"h_{i}", x1=x1, y1=y1, x2=x1 + room_w, y2=y1 + room_h))
+
+        # Vertical arm (left side going up)
+        v_arm_length = random.randint(2, 3)
+        for i in range(v_arm_length):
+            room_w = random.randint(3, 5)
+            room_h = random.randint(4, 6)
+            x1 = corner_x - room_w // 2
+            y1 = corner_y - (i + 1) * (room_h + 1)
+            rooms.append(Room(id=f"v_{i}", x1=x1, y1=y1, x2=x1 + room_w, y2=y1 + room_h))
+
+        # Corner room (larger)
+        corner_w = random.randint(5, 7)
+        corner_h = random.randint(4, 6)
+        rooms.append(Room(id="corner", x1=corner_x, y1=corner_y - corner_h, x2=corner_x + corner_w, y2=corner_y))
+
+        # Add a side room for variety
+        if random.random() < 0.5:
+            side_w = random.randint(3, 5)
+            side_h = random.randint(3, 4)
+            side_x = self.width - side_w - 2
+            side_y = random.randint(2, self.height - side_h - 2)
+            rooms.append(Room(id="side", x1=side_x, y1=side_y, x2=side_x + side_w, y2=side_y + side_h))
+
+        self._rooms = rooms
+        return rooms
+
+    def _generate_spiral_rooms(self, count: int) -> list[Room]:
+        """Generate a spiral-like arrangement of rooms."""
+        rooms = []
+        center_x, center_y = self.width // 2, self.height // 2
+
+        # Create rooms in a spiral pattern
+        angle_offset = random.uniform(0, 3.14)
+        import math
+
+        for i in range(count):
+            # Spiral outward
+            angle = angle_offset + i * (2 * 3.14159 / count) + (i * 0.3)
+            radius = 3 + i * 1.5
+
+            cx = int(center_x + radius * math.cos(angle))
+            cy = int(center_y + radius * math.sin(angle))
+
+            # Clamp to bounds
+            room_w = random.randint(4, 6)
+            room_h = random.randint(3, 5)
+            x1 = max(1, min(cx - room_w // 2, self.width - room_w - 1))
+            y1 = max(1, min(cy - room_h // 2, self.height - room_h - 1))
+
+            rooms.append(Room(id=f"spiral_{i}", x1=x1, y1=y1, x2=x1 + room_w, y2=y1 + room_h))
+
+        self._rooms = rooms
+        return rooms
 
     def _generate_simple_rooms(self, count: int) -> list[Room]:
         rooms = []
         max_attempts = 100
+
+        # Vary room size ranges based on room index for more variety
+        size_configs = [
+            (6, 10, 5, 8),   # Large room
+            (4, 7, 3, 5),    # Medium room
+            (5, 8, 4, 6),    # Medium-large room
+            (3, 6, 3, 5),    # Small room
+        ]
+
         for i in range(count):
+            # Select size config based on room index (with some randomness)
+            config_idx = i % len(size_configs)
+            min_w, max_w, min_h, max_h = size_configs[config_idx]
+
+            # Add randomness to size selection
+            if random.random() < 0.3:  # 30% chance to use different config
+                config_idx = random.randint(0, len(size_configs) - 1)
+                min_w, max_w, min_h, max_h = size_configs[config_idx]
+
             for _ in range(max_attempts):
-                room_width = random.randint(5, 9)
-                room_height = random.randint(4, 7)
+                room_width = random.randint(min_w, max_w)
+                room_height = random.randint(min_h, max_h)
                 x1 = random.randint(1, self.width - room_width - 2)
                 y1 = random.randint(1, self.height - room_height - 2)
                 x2 = x1 + room_width
@@ -95,13 +187,22 @@ class LayoutBuilder:
         return rooms
 
     def _generate_cross_rooms(self) -> list[Room]:
-        center_x, center_y = self.width // 2, self.height // 2
+        # Add randomness to center position
+        center_x = self.width // 2 + random.randint(-2, 2)
+        center_y = self.height // 2 + random.randint(-1, 1)
+
+        # Add randomness to arm lengths
+        arm_length_h = random.randint(3, 5)  # Horizontal arm half-length
+        arm_length_v = random.randint(2, 4)  # Vertical arm half-length
+        center_w = random.randint(3, 5)      # Center room half-width
+        center_h = random.randint(2, 3)      # Center room half-height
+
         rooms = [
-            Room(id="center", x1=center_x-4, y1=center_y-3, x2=center_x+4, y2=center_y+3),
-            Room(id="north", x1=center_x-2, y1=1, x2=center_x+2, y2=center_y-4),
-            Room(id="south", x1=center_x-2, y1=center_y+4, x2=center_x+2, y2=self.height-2),
-            Room(id="west", x1=1, y1=center_y-2, x2=center_x-5, y2=center_y+2),
-            Room(id="east", x1=center_x+5, y1=center_y-2, x2=self.width-2, y2=center_y+2),
+            Room(id="center", x1=center_x-center_w, y1=center_y-center_h, x2=center_x+center_w, y2=center_y+center_h),
+            Room(id="north", x1=center_x-2, y1=1, x2=center_x+2, y2=center_y-center_h-1),
+            Room(id="south", x1=center_x-2, y1=center_y+center_h+1, x2=center_x+2, y2=self.height-2),
+            Room(id="west", x1=1, y1=center_y-2, x2=center_x-center_w-1, y2=center_y+2),
+            Room(id="east", x1=center_x+center_w+1, y1=center_y-2, x2=self.width-2, y2=center_y+2),
         ]
         self._rooms = rooms
         return rooms
@@ -109,13 +210,26 @@ class LayoutBuilder:
     def _generate_linear_rooms(self, count: int) -> list[Room]:
         rooms = []
         usable_width = self.width - 4
-        room_width = usable_width // count - 2
+        base_room_width = usable_width // count - 2
+
+        # Add variation to vertical positioning
+        y_margin_top = random.randint(2, 5)
+        y_margin_bottom = random.randint(2, 5)
+
         for i in range(count):
-            x1 = 2 + i * (room_width + 2)
-            y1 = 4
-            x2 = x1 + room_width
-            y2 = self.height - 5
-            rooms.append(Room(id=f"room_{i}", x1=x1, y1=y1, x2=x2, y2=y2))
+            # Vary room width slightly
+            room_width = base_room_width + random.randint(-1, 1)
+            room_width = max(3, room_width)  # Minimum width
+
+            x1 = 2 + i * (base_room_width + 2)
+            y1 = y_margin_top
+
+            # Add some variation to room height
+            height_variation = random.randint(-1, 1)
+            y2 = self.height - y_margin_bottom + height_variation
+            y2 = min(y2, self.height - 2)  # Keep within bounds
+
+            rooms.append(Room(id=f"room_{i}", x1=x1, y1=y1, x2=x1 + room_width, y2=y2))
         self._rooms = rooms
         return rooms
 
@@ -229,3 +343,64 @@ class LayoutBuilder:
                         break
 
         return passages
+
+    def connect_rooms_with_tracking(self, rooms: list[Room]) -> dict[tuple[int, int], tuple[str, str]]:
+        """Connect all rooms with passages. Returns dict mapping passage position to (room1_id, room2_id)."""
+        if len(rooms) < 2:
+            return {}
+
+        passage_map: dict[tuple[int, int], tuple[str, str]] = {}
+        connected = {rooms[0].id: rooms[0]}
+        unconnected = {r.id: r for r in rooms[1:]}
+
+        while unconnected:
+            best_passage = None
+            best_connected_room = None
+            best_unconnected_room = None
+            best_distance = float('inf')
+
+            for connected_room in connected.values():
+                for room_id, room in unconnected.items():
+                    dist = abs(connected_room.center[0] - room.center[0]) + \
+                           abs(connected_room.center[1] - room.center[1])
+                    if dist < best_distance:
+                        room_passages = self.get_passages_between_rooms(connected_room, room)
+                        if room_passages:
+                            best_distance = dist
+                            best_passage = random.choice(room_passages) if room_passages else None
+                            best_connected_room = connected_room.id
+                            best_unconnected_room = room_id
+
+            if best_passage and best_unconnected_room:
+                px, py = best_passage
+                self._tiles[py][px] = self.TILE_FLOOR
+                passage_map[best_passage] = (best_connected_room, best_unconnected_room)
+                connected[best_unconnected_room] = unconnected[best_unconnected_room]
+                del unconnected[best_unconnected_room]
+            else:
+                # Force connect to nearest unconnected room
+                if unconnected:
+                    room_id = next(iter(unconnected))
+                    room = unconnected[room_id]
+                    for connected_room in connected.values():
+                        c1 = connected_room.center
+                        c2 = room.center
+                        x, y = c1
+                        tx, ty = c2
+                        while x != tx:
+                            x += 1 if tx > x else -1
+                            if 0 <= x < self.width and 0 <= y < self.height:
+                                if self._tiles[y][x] == self.TILE_WALL:
+                                    self._tiles[y][x] = self.TILE_FLOOR
+                                    passage_map[(x, y)] = (connected_room.id, room_id)
+                        while y != ty:
+                            y += 1 if ty > y else -1
+                            if 0 <= x < self.width and 0 <= y < self.height:
+                                if self._tiles[y][x] == self.TILE_WALL:
+                                    self._tiles[y][x] = self.TILE_FLOOR
+                                    passage_map[(x, y)] = (connected_room.id, room_id)
+                        connected[room_id] = room
+                        del unconnected[room_id]
+                        break
+
+        return passage_map

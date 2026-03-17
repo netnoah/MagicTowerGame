@@ -112,6 +112,8 @@ python -m tools.map_generator.generator \
   --verbose
 ```
 
+**Note:** Each floor uses a unique seed derived from the base seed + floor number, ensuring variety even when generating multiple floors with the same base seed.
+
 ### Step 4: Verify Output
 
 The generator produces complete maps with:
@@ -137,11 +139,13 @@ The generator produces complete maps with:
 
 ### Layout Patterns
 
-| Pattern | Description | Room Count |
-|---------|-------------|------------|
-| `simple_rooms` | Non-overlapping rectangles | 2-5 |
-| `cross` | Central hub + 4 branches | 5 |
-| `linear` | Horizontal progression | 2-4 |
+| Pattern | Description | Room Count | Variety |
+|---------|-------------|------------|---------|
+| `simple_rooms` | Non-overlapping rectangles with varied sizes | 2-5 | High - random positions and sizes |
+| `cross` | Central hub + 4 directional arms | 5 | Medium - randomized center and arm lengths |
+| `linear` | Horizontal progression rooms | 2-4 | Medium - varied heights and widths |
+| `l_shape` | L-shaped layout with corner room | 4-5 | High - randomized arm lengths |
+| `spiral` | Spiral arrangement around center | 3-6 | High - randomized spiral pattern |
 
 ### Monster Tiers
 

@@ -1,0 +1,46 @@
+{
+  "group": 1,
+  "floors_range": [1, 3],
+  "difficulty_tier": "easy",
+  "global_theme": "Test Variety",
+  "floors": [
+    {
+      "floor": 1,
+      "name": "Floor 1",
+      "name_cn": "第1层",
+      "layout": {"pattern": "simple_rooms", "room_count": 3},
+      "regions": [
+        {"id": "start", "type": "entrance"},
+        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}}},
+        {"id": "vault", "type": "treasure", "access": {"requires": "yellow_key"}, "content": {"items": ["red_gem"]}}
+      ],
+      "surprises": [],
+      "shops": []
+    },
+    {
+      "floor": 2,
+      "name": "Floor 2",
+      "name_cn": "第2层",
+      "layout": {"pattern": "cross", "room_count": 5},
+      "regions": [
+        {"id": "start", "type": "entrance"},
+        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 3}}}
+      ],
+      "surprises": [],
+      "shops": []
+    },
+    {
+      "floor": 3,
+      "name": "Floor 3",
+      "name_cn": "第3层",
+      "layout": {"pattern": "l_shape", "room_count": 4},
+      "regions": [
+        {"id": "start", "type": "entrance"},
+        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}}}
+      ],
+      "surprises": [],
+      "shops": []
+    }
+  ],
+  "unlock_sequence": []
+}

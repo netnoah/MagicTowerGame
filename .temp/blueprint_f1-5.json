@@ -1,0 +1,85 @@
+{
+  "group": 1,
+  "floors_range": [1, 5],
+  "difficulty_tier": "easy",
+  "global_theme": "Tower Entrance",
+  "floors": [
+    {
+      "floor": 1,
+      "name": "Entrance Hall",
+      "name_cn": "入口大厅",
+      "layout": {"pattern": "simple_rooms", "room_count": 4},
+      "regions": [
+        {"id": "start", "type": "entrance"},
+        {"id": "east_wing", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}, "items": ["yellow_key"]}},
+        {"id": "west_wing", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}}},
+        {"id": "armory", "type": "treasure", "access": {"requires": "yellow_key"}, "content": {"items": ["sword_1", "shield_1"]}}
+      ],
+      "surprises": [],
+      "shops": [{"id": "general_store", "region": "start"}]
+    },
+    {
+      "floor": 2,
+      "name": "Corridor of Echoes",
+      "name_cn": "回音走廊",
+      "layout": {"pattern": "cross", "room_count": 5},
+      "regions": [
+        {"id": "start", "type": "entrance"},
+        {"id": "north", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}, "items": ["yellow_key"]}},
+        {"id": "south", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}}},
+        {"id": "east", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}}},
+        {"id": "west", "type": "treasure", "access": {"requires": "yellow_key"}, "content": {"items": ["red_gem", "blue_gem"]}}
+      ],
+      "surprises": [{"type": "guardian", "location": "east", "guardian_tier": 2, "reward": ["red_potion"]}],
+      "shops": []
+    },
+    {
+      "floor": 3,
+      "name": "Guardian Passage",
+      "name_cn": "守卫通道",
+      "layout": {"pattern": "l_shape", "room_count": 4},
+      "regions": [
+        {"id": "start", "type": "entrance"},
+        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 3}, "items": ["yellow_key", "blue_key"]}},
+        {"id": "vault", "type": "treasure", "access": {"requires": "blue_key"}, "content": {"items": ["sword_2"]}}
+      ],
+      "surprises": [{"type": "guardian", "location": "vault", "guardian_tier": 2, "reward": ["red_potion", "blue_potion"]}],
+      "shops": []
+    },
+    {
+      "floor": 4,
+      "name": "Hall of Trials",
+      "name_cn": "试炼大厅",
+      "layout": {"pattern": "simple_rooms", "room_count": 3},
+      "regions": [
+        {"id": "start", "type": "entrance"},
+        {"id": "trial_a", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 3}, "items": ["yellow_key"]}},
+        {"id": "trial_b", "type": "pathway", "content": {"monsters": {"tier": 2, "count": 2}, "items": ["blue_key"]}},
+        {"id": "armory", "type": "treasure", "access": {"requires": "yellow_key"}, "content": {"items": ["shield_2", "red_gem"]}}
+      ],
+      "surprises": [],
+      "shops": [{"id": "weapon_shop", "region": "start"}]
+    },
+    {
+      "floor": 5,
+      "name": "First Guardian",
+      "name_cn": "首层守护者",
+      "layout": {"pattern": "spiral", "room_count": 4},
+      "regions": [
+        {"id": "start", "type": "entrance"},
+        {"id": "outer", "type": "pathway", "content": {"monsters": {"tier": 2, "count": 3}, "items": ["yellow_key", "blue_key"]}},
+        {"id": "inner", "type": "pathway", "content": {"monsters": {"tier": 2, "count": 2}}},
+        {"id": "core", "type": "boss", "access": {"requires": "blue_key"}, "content": {"monsters": {"tier": 3, "count": 1}, "items": ["sword_3", "red_gem", "blue_gem"]}}
+      ],
+      "surprises": [{"type": "guardian", "location": "core", "guardian_tier": 3, "reward": ["yellow_key", "red_key"]}],
+      "shops": []
+    }
+  ],
+  "unlock_sequence": [
+    {"floor": 1, "door": "yellow", "key_at": "east_wing", "target_region": "armory"},
+    {"floor": 2, "door": "yellow", "key_at": "north", "target_region": "west"},
+    {"floor": 3, "door": "blue", "key_at": "main", "target_region": "vault"},
+    {"floor": 4, "door": "yellow", "key_at": "trial_a", "target_region": "armory"},
+    {"floor": 5, "door": "blue", "key_at": "outer", "target_region": "core"}
+  ]
+}

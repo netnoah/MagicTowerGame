@@ -104,6 +104,91 @@ def get_region_tiles(
     return floor_tiles
 
 
+def find_passage_to_region(
+    builder: LayoutBuilder,
+    rooms: list,
+    target_region_id: str,
+    reachable_tiles: set[tuple[int, int]],
+    floor_tiles: set[tuple[int, int]],
+    all_regions: list,
+    passage_map: dict[tuple[int, int], tuple[str, str]],
+    region_to_rooms: dict[str, list],
+) -> Optional[tuple[int, int]]:
+    """Find a passage position that blocks access to the target region.
+
+    Uses the passage_map to find passages that connect rooms in different regions.
+    """
+    import random
+
+    if not target_region_id:
+        return None
+
+    # Get rooms in target region
+    target_rooms = region_to_rooms.get(target_region_id, [])
+    if not target_rooms:
+        # Fallback: use tile-based approach
+        target_tiles = get_region_tiles(target_region_id, rooms, floor_tiles, all_regions)
+        for x, y in floor_tiles:
+            adjacent_to_reachable = False
+            adjacent_to_target = False
+            for dx, dy in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+                nx, ny = x + dx, y + dy
+                if (nx, ny) in reachable_tiles:
+                    adjacent_to_reachable = True
+                if (nx, ny) in target_tiles:
+                    adjacent_to_target = True
+            if adjacent_to_reachable and adjacent_to_target:
+                return (x, y)
+        return None
+
+    target_room_ids = {r.id for r in target_rooms}
+
+    # Find passages that connect a room in accessible region to a room in target region
+    candidate_passages = []
+    for passage_pos, (room1_id, room2_id) in passage_map.items():
+        if room1_id in target_room_ids or room2_id in target_room_ids:
+            # This passage connects to target region
+            candidate_passages.append(passage_pos)
+
+    if candidate_passages:
+        return random.choice(candidate_passages)
+
+    # Fallback: find any passage adjacent to target region tiles
+    target_tiles = get_region_tiles(target_region_id, rooms, floor_tiles, all_regions)
+    for passage_pos in passage_map.keys():
+        x, y = passage_pos
+        for dx, dy in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+            nx, ny = x + dx, y + dy
+            if (nx, ny) in target_tiles:
+                return passage_pos
+
+    return None
+
+
+def map_regions_to_rooms(
+    regions: list,
+    rooms: list,
+    floor_tiles: set[tuple[int, int]]
+) -> dict[str, list]:
+    """Map each region to the room(s) it occupies based on tile overlap."""
+    region_to_rooms = {}
+
+    for region in regions:
+        region_tiles = get_region_tiles(region.id, rooms, floor_tiles, regions)
+        associated_rooms = []
+
+        for room in rooms:
+            room_tiles = {t for t in floor_tiles if room.contains(t[0], t[1])}
+            # If region has significant overlap with room
+            overlap = len(region_tiles & room_tiles)
+            if overlap > 0:
+                associated_rooms.append(room)
+
+        region_to_rooms[region.id] = associated_rooms
+
+    return region_to_rooms
+
+
 @dataclass
 class MapGenerator:
     width: int = 25
@@ -121,15 +206,24 @@ class MapGenerator:
         floor_lookup = {f.floor: f for f in blueprint.floors}
 
         for floor_bp in blueprint.floors:
-            builder = LayoutBuilder(width=self.width, height=self.height, seed=self.seed)
+            # Use per-floor seed for variety: combine base seed with floor number
+            floor_seed = None
+            if self.seed is not None:
+                floor_seed = self.seed * 1000 + floor_bp.floor
+            else:
+                # Generate a seed based on floor number for reproducibility
+                import time
+                floor_seed = int(time.time() * 1000) % (10**9) + floor_bp.floor * 12345
+
+            builder = LayoutBuilder(width=self.width, height=self.height, seed=floor_seed)
             rooms = builder.generate_rooms(
                 pattern=floor_bp.layout.pattern,
                 count=floor_bp.layout.room_count,
             )
             builder.carve_rooms(rooms)
 
-            # Connect rooms with passages
-            builder.connect_rooms(rooms)
+            # Connect rooms with passages and track which rooms each passage connects
+            passage_map = builder.connect_rooms_with_tracking(rooms)
 
             tiles = builder.get_tiles()
             floor_tiles = builder.get_floor_tiles()
@@ -147,8 +241,19 @@ class MapGenerator:
             # Track door positions for connectivity
             door_positions: set[tuple[int, int]] = set()
 
-            # Track which regions have been processed for key placement
-            accessible_regions: set[str] = set()
+            # Initialize connectivity tracker from start position
+            # Doors are initially treated as blocked (not passable)
+            tracker = ConnectivityTracker(tiles, start_pos, blocked=set())
+
+            # Map regions to rooms for better door placement
+            region_to_rooms = map_regions_to_rooms(floor_bp.regions, rooms, floor_tiles)
+
+            # Track accessible regions (starts with entrance)
+            accessible_region_ids: set[str] = set()
+            for region in floor_bp.regions:
+                if region.type == "entrance":
+                    accessible_region_ids.add(region.id)
+                    break
 
             # Process unlock_sequence for this floor
             floor_unlock_steps = [
@@ -156,21 +261,57 @@ class MapGenerator:
                 if step.floor == floor_bp.floor
             ]
 
-            # First pass: place content in regions without access requirements
+            # STEP 1: Place doors FIRST (before other entities) to reserve passage positions
+            for step in floor_unlock_steps:
+                target_region = step.target_region if hasattr(step, 'target_region') and step.target_region else None
+
+                door_pos = None
+                if target_region:
+                    # Use passage_map to find the right passage
+                    door_pos = find_passage_to_region(
+                        builder, rooms, target_region,
+                        floor_tiles, floor_tiles, floor_bp.regions,  # Use all floor tiles for initial search
+                        passage_map, region_to_rooms
+                    )
+
+                # Fallback: place door at any passage between rooms
+                if not door_pos:
+                    for passage_pos in passage_map.keys():
+                        if passage_pos not in door_positions and passage_pos in floor_tiles:
+                            door_pos = passage_pos
+                            break
+
+                # Final fallback: place at boundary of any room
+                if not door_pos and rooms:
+                    for room in rooms[1:]:
+                        boundary = builder.get_boundary_tiles(room)
+                        available = boundary & floor_tiles
+                        if available:
+                            door_pos = list(available)[0]
+                            break
+
+                if door_pos:
+                    # Place door entity - use try/except to handle already occupied positions
+                    # Note: entity_id should be just the color (e.g., "yellow") for game compatibility
+                    try:
+                        placer.place_entity_at("door", step.door, door_pos)
+                        door_positions.add(door_pos)
+                        tracker.add_door(door_pos)
+                    except ValueError:
+                        # Position already occupied, skip this door
+                        pass
+
+            # STEP 2: Now place content in regions without access requirements
             for region in floor_bp.regions:
                 region_tiles = get_region_tiles(
                     region.id, rooms, floor_tiles, floor_bp.regions
                 )
 
-                # Mark entrance as accessible
-                if region.type == "entrance":
-                    accessible_regions.add(region.id)
-
                 # Skip regions with access requirements for now
                 if region.access and region.access.requires:
                     continue
 
-                accessible_regions.add(region.id)
+                accessible_region_ids.add(region.id)
 
                 if region.content:
                     if region.content.monsters:
@@ -181,48 +322,26 @@ class MapGenerator:
                         for item_id in region.content.items:
                             placer.place_in_region("item", item_id, region_tiles)
 
-            # Process unlock sequence: place doors and keys
+            # STEP 3: Place keys in accessible regions
+            current_reachable = tracker.get_reachable_positions()
             for step in floor_unlock_steps:
-                # Find passage points to place door
-                door_placed = False
-
-                # Try to place door at a passage between rooms
-                for i, room1 in enumerate(rooms):
-                    for room2 in rooms[i+1:]:
-                        passages = builder.get_passages_between_rooms(room1, room2)
-                        for passage in passages:
-                            if passage not in door_positions and passage in floor_tiles:
-                                # Place door entity
-                                placer.place_entity_at("door", f"{step.door}_door", passage)
-                                door_positions.add(passage)
-                                door_placed = True
-                                break
-                        if door_placed:
-                            break
-                    if door_placed:
-                        break
-
-                # If no passage found, place door at a random floor tile near room boundary
-                if not door_placed and rooms:
-                    for room in rooms[1:]:  # Skip first room (usually entrance)
-                        boundary = builder.get_boundary_tiles(room)
-                        available = boundary & floor_tiles & placer.available_positions
-                        if available:
-                            pos = list(available)[0]
-                            placer.place_entity_at("door", f"{step.door}_door", pos)
-                            door_positions.add(pos)
-                            break
-
-                # Place key in the key_at region
                 key_region = step.key_at
                 key_tiles = get_region_tiles(key_region, rooms, floor_tiles, floor_bp.regions)
 
-                # Generate key item id from door color
+                # Ensure key is placed in reachable area
+                reachable_key_tiles = key_tiles & current_reachable & placer.available_positions
+                if not reachable_key_tiles:
+                    reachable_key_tiles = current_reachable & placer.available_positions
+                if not reachable_key_tiles:
+                    reachable_key_tiles = placer.available_positions
+
+                # Generate key item id from door color and place it
                 key_id = f"{step.door}_key"
                 for _ in range(step.key_count):
-                    placer.place_in_region("item", key_id, key_tiles)
+                    if reachable_key_tiles:
+                        placer.place_in_region("item", key_id, reachable_key_tiles)
 
-            # Second pass: place content in regions with access requirements
+            # STEP 4: Place content in regions with access requirements
             for region in floor_bp.regions:
                 if not region.access or not region.access.requires:
                     continue

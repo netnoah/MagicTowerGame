@@ -1,0 +1,31 @@
+{
+  "group": 1,
+  "floors_range": [1, 1],
+  "difficulty_tier": "easy",
+  "global_theme": "Tower Entrance",
+  "floors": [
+    {
+      "floor": 1,
+      "name": "Entrance Hall",
+      "name_cn": "入口大厅",
+      "layout": {"pattern": "simple_rooms", "room_count": 4},
+      "regions": [
+        {"id": "start", "type": "entrance"},
+        {"id": "east_wing", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 3}, "items": ["yellow_key", "yellow_key"]}},
+        {"id": "west_wing", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}, "items": ["yellow_key"]}},
+        {"id": "armory", "type": "treasure", "access": {"requires": "yellow_key"}, "content": {"items": ["sword_1", "shield_1"]}},
+        {"id": "vault", "type": "treasure", "access": {"requires": "yellow_key"}, "content": {"items": ["red_gem", "blue_gem", "red_potion", "red_potion"]}}
+      ],
+      "surprises": [
+        {"type": "guardian", "location": "vault", "guardian_tier": 2, "reward": ["blue_key"]}
+      ],
+      "shops": [
+        {"id": "general_store", "region": "start"}
+      ]
+    }
+  ],
+  "unlock_sequence": [
+    {"floor": 1, "door": "yellow", "key_at": "east_wing", "target_region": "armory"},
+    {"floor": 1, "door": "yellow", "key_at": "west_wing", "target_region": "vault"}
+  ]
+}
