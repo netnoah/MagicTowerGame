@@ -1,0 +1,171 @@
+{
+  "group": 1,
+  "floors_range": [1, 5],
+  "difficulty_tier": "easy",
+  "global_theme": "Tower Introduction - Strategic Exploration",
+  "floors": [
+    {
+      "floor": 1,
+      "name": "Tower Entrance",
+      "layout": {"pattern": "simple_rooms", "room_count": 12},
+      "regions": [
+        {"id": "entrance", "type": "entrance"},
+        {"id": "hall_1", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}}},
+        {"id": "hall_2", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}}},
+        {"id": "hall_3", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 3}}},
+        {"id": "side_room", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}}},
+        {"id": "storage", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}}},
+        {"id": "vault", "type": "treasure", "access": {"requires": "yellow_key"}, "content": {"items": ["red_gem", "red_potion"]}},
+        {"id": "armory", "type": "treasure", "access": {"requires": "blue_key"}, "content": {"items": ["sword_1", "blue_gem"]}},
+        {"id": "guardian_room", "type": "boss", "access": {"requires": "yellow_key"}, "content": {"items": ["shield_1"]}}
+      ],
+      "surprises": [
+        {"type": "guardian", "location": "guardian_room", "guardian_tier": 2},
+        {"type": "trap", "location": "hall_3"}
+      ],
+      "shops": [
+        {"id": "potion_shop", "region": "entrance"}
+      ]
+    },
+    {
+      "floor": 2,
+      "name": "Corridor of Echoes",
+      "layout": {"pattern": "cross", "room_count": 12},
+      "regions": [
+        {"id": "entrance", "type": "entrance"},
+        {"id": "north_wing", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 3}}},
+        {"id": "south_wing", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}}},
+        {"id": "east_wing", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 3}}},
+        {"id": "west_wing", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}}},
+        {"id": "central_hall", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}}},
+        {"id": "storage", "type": "treasure", "access": {"requires": "yellow_key"}, "content": {"items": ["yellow_gem", "red_potion"]}},
+        {"id": "archives", "type": "treasure", "access": {"requires": "blue_key"}, "content": {"items": ["sword_2", "blue_gem"]}},
+        {"id": "sentinel_post", "type": "boss", "access": {"requires": "yellow_key"}, "content": {"items": ["shield_2"]}}
+      ],
+      "surprises": [
+        {"type": "guardian", "location": "sentinel_post", "guardian_tier": 2},
+        {"type": "trap", "location": "east_wing"}
+      ],
+      "shops": [
+        {"id": "weapon_shop", "region": "central_hall"}
+      ]
+    },
+    {
+      "floor": 3,
+      "name": "Guardian's Passage",
+      "layout": {"pattern": "linear", "room_count": 12},
+      "regions": [
+        {"id": "entrance", "type": "entrance"},
+        {"id": "passage_1", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 3}}},
+        {"id": "passage_2", "type": "pathway", "content": {"monsters": {"tier": 2, "count": 2}}},
+        {"id": "passage_3", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 3}}},
+        {"id": "rest_area", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 1}}},
+        {"id": "side_path", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}}},
+        {"id": "supply_room", "type": "treasure", "access": {"requires": "yellow_key"}, "content": {"items": ["red_potion", "blue_potion"]}},
+        {"id": "armory_2", "type": "treasure", "access": {"requires": "blue_key"}, "content": {"items": ["shield_2", "yellow_gem"]}},
+        {"id": "mini_boss_room", "type": "boss", "access": {"requires": "yellow_key"}, "content": {"items": ["sword_3"]}}
+      ],
+      "surprises": [
+        {"type": "guardian", "location": "mini_boss_room", "guardian_tier": 3},
+        {"type": "trap", "location": "passage_2"}
+      ],
+      "shops": [
+        {"id": "general_store", "region": "rest_area"}
+      ]
+    },
+    {
+      "floor": 4,
+      "name": "Hall of Trials",
+      "layout": {"pattern": "l_shape", "room_count": 12},
+      "regions": [
+        {"id": "entrance", "type": "entrance"},
+        {"id": "trial_1", "type": "pathway", "content": {"monsters": {"tier": 2, "count": 2}}},
+        {"id": "trial_2", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 3}}},
+        {"id": "trial_3", "type": "pathway", "content": {"monsters": {"tier": 2, "count": 3}}},
+        {"id": "rest_hall", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}}},
+        {"id": "side_chamber", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}}},
+        {"id": "reward_vault", "type": "treasure", "access": {"requires": "yellow_key"}, "content": {"items": ["blue_gem", "blue_gem", "red_potion"]}},
+        {"id": "weapon_cache", "type": "treasure", "access": {"requires": "blue_key"}, "content": {"items": ["sword_2", "blue_potion"]}},
+        {"id": "champion_arena", "type": "boss", "access": {"requires": "yellow_key"}, "content": {"items": ["shield_3"]}}
+      ],
+      "surprises": [
+        {"type": "guardian", "location": "champion_arena", "guardian_tier": 3},
+        {"type": "trap", "location": "trial_3"}
+      ],
+      "shops": [
+        {"id": "armor_shop", "region": "rest_hall"}
+      ]
+    },
+    {
+      "floor": 5,
+      "name": "Gatekeeper's Domain",
+      "layout": {"pattern": "spiral", "room_count": 13},
+      "regions": [
+        {"id": "entrance", "type": "entrance"},
+        {"id": "outer_ring", "type": "pathway", "content": {"monsters": {"tier": 2, "count": 3}}},
+        {"id": "middle_ring", "type": "pathway", "content": {"monsters": {"tier": 2, "count": 3}}},
+        {"id": "inner_ring", "type": "pathway", "content": {"monsters": {"tier": 2, "count": 2}}},
+        {"id": "side_passage", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 3}}},
+        {"id": "secret_path", "type": "pathway", "content": {"monsters": {"tier": 2, "count": 2}}},
+        {"id": "treasure_hoard", "type": "treasure", "access": {"requires": "yellow_key"}, "content": {"items": ["red_gem", "red_gem", "blue_gem"]}},
+        {"id": "arsenal", "type": "treasure", "access": {"requires": "blue_key"}, "content": {"items": ["sword_3", "shield_2"]}},
+        {"id": "secret_vault", "type": "treasure", "access": {"requires": "red_key"}, "content": {"items": ["yellow_key", "blue_key"]}},
+        {"id": "gatekeeper_throne", "type": "boss", "access": {"requires": "yellow_key"}, "content": {"items": ["shield_3"]}}
+      ],
+      "surprises": [
+        {"type": "guardian", "location": "gatekeeper_throne", "guardian_tier": 4},
+        {"type": "trap", "location": "middle_ring"}
+      ],
+      "shops": [
+        {"id": "premium_shop", "region": "inner_ring"}
+      ]
+    }
+  ],
+  "unlock_sequence": [
+    {"floor": 1, "door": "yellow", "key_at": "entrance", "target_region": "hall_1"},
+    {"floor": 1, "door": "yellow", "key_at": "entrance", "target_region": "hall_2"},
+    {"floor": 1, "door": "yellow", "key_at": "hall_2", "target_region": "hall_3"},
+    {"floor": 1, "door": "yellow", "key_at": "hall_2", "target_region": "side_room"},
+    {"floor": 1, "door": "yellow", "key_at": "hall_2", "target_region": "storage"},
+    {"floor": 1, "door": "yellow", "key_at": "storage", "target_region": "vault"},
+    {"floor": 1, "door": "blue", "key_at": "storage", "target_region": "armory"},
+    {"floor": 1, "door": "yellow", "key_at": "vault", "target_region": "guardian_room"},
+
+    {"floor": 2, "door": "yellow", "key_at": "entrance", "target_region": "north_wing"},
+    {"floor": 2, "door": "yellow", "key_at": "entrance", "target_region": "south_wing"},
+    {"floor": 2, "door": "yellow", "key_at": "south_wing", "target_region": "central_hall"},
+    {"floor": 2, "door": "yellow", "key_at": "central_hall", "target_region": "east_wing"},
+    {"floor": 2, "door": "yellow", "key_at": "central_hall", "target_region": "west_wing"},
+    {"floor": 2, "door": "yellow", "key_at": "west_wing", "target_region": "storage"},
+    {"floor": 2, "door": "blue", "key_at": "storage", "target_region": "archives"},
+    {"floor": 2, "door": "yellow", "key_at": "archives", "target_region": "sentinel_post"},
+
+    {"floor": 3, "door": "yellow", "key_at": "entrance", "target_region": "passage_1"},
+    {"floor": 3, "door": "yellow", "key_at": "entrance", "target_region": "passage_2"},
+    {"floor": 3, "door": "yellow", "key_at": "passage_2", "target_region": "passage_3"},
+    {"floor": 3, "door": "yellow", "key_at": "passage_2", "target_region": "rest_area"},
+    {"floor": 3, "door": "yellow", "key_at": "rest_area", "target_region": "side_path"},
+    {"floor": 3, "door": "yellow", "key_at": "side_path", "target_region": "supply_room"},
+    {"floor": 3, "door": "blue", "key_at": "supply_room", "target_region": "armory_2"},
+    {"floor": 3, "door": "yellow", "key_at": "armory_2", "target_region": "mini_boss_room"},
+
+    {"floor": 4, "door": "yellow", "key_at": "entrance", "target_region": "trial_1"},
+    {"floor": 4, "door": "yellow", "key_at": "entrance", "target_region": "trial_2"},
+    {"floor": 4, "door": "yellow", "key_at": "trial_2", "target_region": "trial_3"},
+    {"floor": 4, "door": "yellow", "key_at": "trial_2", "target_region": "rest_hall"},
+    {"floor": 4, "door": "yellow", "key_at": "rest_hall", "target_region": "side_chamber"},
+    {"floor": 4, "door": "yellow", "key_at": "side_chamber", "target_region": "reward_vault"},
+    {"floor": 4, "door": "blue", "key_at": "reward_vault", "target_region": "weapon_cache"},
+    {"floor": 4, "door": "yellow", "key_at": "weapon_cache", "target_region": "champion_arena"},
+
+    {"floor": 5, "door": "yellow", "key_at": "entrance", "target_region": "outer_ring"},
+    {"floor": 5, "door": "yellow", "key_at": "entrance", "target_region": "middle_ring"},
+    {"floor": 5, "door": "yellow", "key_at": "middle_ring", "target_region": "inner_ring"},
+    {"floor": 5, "door": "yellow", "key_at": "middle_ring", "target_region": "side_passage"},
+    {"floor": 5, "door": "yellow", "key_at": "side_passage", "target_region": "secret_path"},
+    {"floor": 5, "door": "yellow", "key_at": "secret_path", "target_region": "treasure_hoard"},
+    {"floor": 5, "door": "blue", "key_at": "treasure_hoard", "target_region": "arsenal"},
+    {"floor": 5, "door": "yellow", "key_at": "arsenal", "target_region": "gatekeeper_throne"},
+    {"floor": 5, "door": "red", "key_at": "gatekeeper_throne", "target_region": "secret_vault"}
+  ]
+}

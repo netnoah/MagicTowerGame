@@ -64,31 +64,42 @@ Create a blueprint JSON file describing the map intent.
 
 ## CRITICAL REQUIREMENTS
 
-### Requirement 1: Minimum 9 Regions Per Floor
+### Requirement 1: 7-9 Regions Per Floor
 
-Each floor MUST have at least 9 regions to create meaningful exploration. A region represents a distinct area that can contain monsters, items, or other content.
+Each floor MUST have 7-9 regions to create meaningful exploration while ensuring generator can place all doors.
 
 **Region distribution pattern:**
 - 1 entrance region (player spawn)
-- 4-5 pathway regions (main exploration areas with monsters)
+- 3-4 pathway regions (main exploration areas with monsters)
 - 2-3 treasure regions (locked areas with rewards)
-- 1-2 challenge regions (optional difficult areas with high rewards)
+- 1 challenge region (optional difficult area with high rewards)
 
-### Requirement 2: Every Region Separated by Doors
+**IMPORTANT:** Do NOT exceed 9 regions or 8 doors per floor, as the generator cannot place more doors than available passage points.
 
-Each region transition MUST be controlled by a door. This creates a lock-and-key progression system.
+### Requirement 2: Door-Region Balance
+
+**Generator Limitation:** LayoutBuilder typically generates 5-8 passage points per floor.
+
+**Safe limits:**
+- **Optimal**: 6-7 regions with 5-6 doors
+- **Maximum**: 9 regions with 7-8 doors (risky - may not all place)
+- **Avoid**: >9 regions or >8 doors (generator cannot place all)
 
 **Door placement rules:**
 - Every pathway region after entrance requires a door
 - Every treasure region requires a door (locked by key)
-- Every challenge region requires a door
-- The unlock_sequence MUST have an entry for EACH door
+- Challenge regions require a door
+- The unlock_sequence MUST have one entry per door
+- **CRITICAL:** Keep unlock_sequence entries ≤ available passage points (typically 5-8)
 
-**Example for 9 regions:**
+**Example for 7 regions:**
 - 1 door from entrance to pathway_1
-- 1 door from pathway_1 to pathway_2
-- 1 door from pathway_2 to treasure_1 (requires key found earlier)
-- ... and so on for all 9 regions
+- 1 door from entrance to pathway_2
+- 1 door from pathway_2 to pathway_3
+- 1 door from pathway_2 to treasure_1
+- 1 door from pathway_3 to treasure_2
+- 1 door from treasure_1 to challenge_room
+- (Total: 6 doors - generator can handle this)
 
 ### Requirement 3: Surprise Elements Required
 
