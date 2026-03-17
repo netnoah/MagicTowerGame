@@ -1,0 +1,27 @@
+{
+  "group": 3,
+  "floors_range": [11, 15],
+  "difficulty_tier": "hard",
+  "global_theme": "Advanced Challenges",
+  "floors": [
+    {
+      "floor": 11,
+      "name": "Dark Corridor",
+      "layout": {"pattern": "cross", "room_count": 5},
+      "regions": [
+        {"id": "start", "type": "entrance"},
+        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 3, "count": 6}},
+        {"id": "vault", "type": "treasure", "access": {"requires": "red_key"}}
+      ],
+      "surprises": [
+        {"type": "guardian", "location": "vault", "guardian_tier": 3, "reward": ["red_key", "blue_gem"]}
+      ]
+    }
+  ],
+  "unlock_sequence": [
+    {"floor": 11, "door": "yellow", "key_at": "start"},
+    {"floor": 12, "door": "blue", "key_at": "main"},
+    {"floor": 13, "door": "red", "key_at": "vault"},
+    {"floor": 14, "door": "green", "key_at": "start"}
+  ]
+}

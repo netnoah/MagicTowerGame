@@ -1,0 +1,29 @@
+{
+  "group": 4,
+  "floors_range": [16, 21],
+  "difficulty_tier": "extreme",
+  "global_theme": "Final Challenge",
+  "floors": [
+    {
+      "floor": 16,
+      "name": "Dragon's Lair",
+      "layout": {"pattern": "cross", "room_count": 6},
+      "regions": [
+        {"id": "start", "type": "entrance"},
+        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 4, "count": 7}},
+        {"id": "vault", "type": "treasure", "access": {"requires": "green_key"}}
+      ],
+      "surprises": [
+        {"type": "guardian", "location": "vault", "guardian_tier": 5, "reward": ["red_key", "attack_gem", "legendary_sword"]}
+      ]
+    }
+  ],
+  "unlock_sequence": [
+    {"floor": 16, "door": "green", "key_at": "start"},
+    {"floor": 17, "door": "red", "key_at": "main"},
+    {"floor": 18, "door": "blue", "key_at": "vault"},
+    {"floor": 19, "door": "yellow", "key_at": "start"},
+    {"floor": 20, "door": "blue", "key_at": "start"},
+    {"floor": 21, "door": "red", "key_at": "main"}
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "group": 1,
+  "floors_range": [1, 5],
+  "difficulty_tier": "easy",
+  "global_theme": "Introduction - Entry Area",
+  "floors": [
+    {
+      "floor": 1,
+      "name": "Entrance Hall",
+      "layout": {"pattern": "simple_rooms", "room_count": 3},
+      "regions": [
+        {"id": "start", "type": "entrance"},
+        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 3},        {"id": "vault", "type": "treasure", "access": {"requires": "yellow_key"},
+      ],
+      "surprises": []
+    },
+    "unlock_sequence": [
+      {"floor": 1, "door": "yellow", "key_at": "start"},
+      {"floor": 2, "door": "yellow", "key_at": "start", "target_region": "main"},
+      {"floor": 3, "door": "blue", "key_at": "vault"},
+      {"floor": 4, "door": "yellow", "key_at": "start"}
+    ]
+  ]
+}

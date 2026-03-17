@@ -1,0 +1,27 @@
+{
+  "group": 2,
+  "floors_range": [6, 10],
+  "difficulty_tier": "normal",
+  "global_theme": "Exploration - New Challenges",
+  "floors": [
+    {
+      "floor": 6,
+      "name": "Guardian's Keep",
+      "layout": {"pattern": "simple_rooms", "room_count": 4},
+      "regions": [
+        {"id": "start", "type": "entrance"},
+        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 2, "count": 5}},
+        {"id": "vault", "type": "treasure", "access": {"requires": "yellow_key"}
+      ],
+      "surprises": [
+        {"type": "guardian", "location": "vault", "guardian_tier": 2, "reward": ["blue_key", "red_gem"]}
+      ]
+    }
+  ],
+  "unlock_sequence": [
+    {"floor": 6, "door": "blue", "key_at": "start"},
+    {"floor": 7, "door": "yellow", "key_at": "start", "target_region": "main"},
+    {"floor": 8, "door": "blue", "key_at": "vault"},
+    {"floor": 9, "door": "red", "key_at": "start"}
+  ]
+}
