@@ -106,7 +106,138 @@ Every floor MUST include at least 2 surprise elements. Surprise types:
 - Floors 11-15: At least 2 guardians + 2 traps
 - Floors 16-21: At least 3 guardians + 2 traps
 
+### Requirement 4: Key-Door Reachability (CRITICAL - Prevents Deadlocks)
+
+**The Golden Rule:** Every key MUST be obtainable BEFORE the player needs it to open a door.
+
+**Why this matters:** If a player spawns in an area that requires 2 keys to exit, but only has 1 key available in that area, they are deadlocked and cannot progress.
+
+#### Linear Unlock Sequence Pattern
+
+Design unlock_sequence following a **linear progression** where each door's key is placed in an already-accessible region:
+
+```
+entrance (no door needed)
+  ↓ [yellow door 1]
+corridor_1 (has yellow_key_1)
+  ↓ [yellow door 2]
+corridor_2 (has blue_key)
+  ↓ [blue door]
+treasure_room
+```
+
+**Correct Example:**
+```json
+{
+  "regions": [
+    {"id": "entrance", "type": "entrance"},
+    {"id": "corridor_1", "type": "pathway"},
+    {"id": "corridor_2", "type": "pathway"}
+  ],
+  "unlock_sequence": [
+    {
+      "floor": 1,
+      "door": "yellow",
+      "key_at": "entrance",          // ✓ Key in starting area
+      "target_region": "corridor_1"
+    },
+    {
+      "floor": 1,
+      "door": "yellow",
+      "key_at": "corridor_1",        // ✓ Key in area unlocked by first door
+      "target_region": "corridor_2"
+    }
+  ]
+}
+```
+
+**INCORRECT Example (Deadlock):**
+```json
+{
+  "regions": [
+    {"id": "entrance", "type": "entrance"},  // Player spawns here
+    {"id": "corridor_1", "type": "pathway"},
+    {"id": "corridor_2", "type": "pathway"}
+  ],
+  "unlock_sequence": [
+    {
+      "floor": 1,
+      "door": "yellow",
+      "key_at": "corridor_1",        // ✗ Key BEHIND the door it opens!
+      "target_region": "corridor_1"  // ✗ DEADLOCK: player can't reach key
+    }
+  ]
+}
+```
+
+#### Validation Rules
+
+When designing unlock_sequence, verify:
+
+1. **First door rule:** The first door in the sequence MUST have its key in the `entrance` region
+2. **Chain rule:** Each subsequent door's key MUST be in a region accessible by all previous doors
+3. **No circular dependencies:** Never place a key behind the door it opens
+
+#### Reachability Verification Algorithm
+
+Before finalizing blueprint, mentally trace player progression:
+
+```python
+reachable_regions = {entrance}
+available_keys = {}
+
+for step in unlock_sequence:
+    # Check: is key_at region reachable?
+    if step.key_at not in reachable_regions:
+        ERROR: "Deadlock detected - key not reachable"
+
+    # Player obtains key
+    available_keys[step.door_color] += 1
+
+    # Player uses key to open door
+    if available_keys[step.door_color] <= 0:
+        ERROR: "Not enough keys"
+
+    # New region becomes accessible
+    reachable_regions.add(step.target_region)
+```
+
+#### Entrance Region Rules
+
+The `entrance` region MUST:
+- Be the player spawn point (no doors blocking access)
+- Contain keys for the first set of doors
+- NOT have any `access.requires` field (it's always accessible)
+
+**Example:**
+```json
+{
+  "regions": [
+    {
+      "id": "entrance",
+      "type": "entrance"
+      // NO access.requires - always accessible
+    },
+    {
+      "id": "main_hall",
+      "type": "pathway",
+      "access": {"requires": "yellow_key"}  // Requires key
+    }
+  ],
+  "unlock_sequence": [
+    {
+      "floor": 1,
+      "door": "yellow",
+      "key_at": "entrance",  // Key in spawn area
+      "target_region": "main_hall"
+    }
+  ]
+}
+```
+
 ## Blueprint Format
+
+**IMPORTANT:** The unlock_sequence MUST follow linear progression - each door's key must be obtainable in an already-accessible region.
 
 ```json
 {
@@ -120,9 +251,9 @@ Every floor MUST include at least 2 surprise elements. Surprise types:
       "name": "Tower Entrance",
       "layout": {"pattern": "simple_rooms", "room_count": 9},
       "regions": [
-        {"id": "entrance", "type": "entrance"},
+        {"id": "entrance", "type": "entrance", "content": {"items": ["yellow_key"]}},
         {"id": "hall_1", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}}},
-        {"id": "hall_2", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}, "items": ["yellow_key"]}},
+        {"id": "hall_2", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}, "items": ["yellow_key", "yellow_key"]}},
         {"id": "hall_3", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 3}}},
         {"id": "hall_4", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}, "items": ["blue_key"]}},
         {"id": "side_room", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}}},
@@ -140,7 +271,11 @@ Every floor MUST include at least 2 surprise elements. Surprise types:
     }
   ],
   "unlock_sequence": [
+    {"floor": 1, "door": "yellow", "key_at": "entrance", "target_region": "hall_1"},
+    {"floor": 1, "door": "yellow", "key_at": "hall_1", "target_region": "hall_2"},
     {"floor": 1, "door": "yellow", "key_at": "hall_2", "target_region": "hall_3"},
+    {"floor": 1, "door": "yellow", "key_at": "hall_2", "target_region": "hall_4"},
+    {"floor": 1, "door": "yellow", "key_at": "hall_2", "target_region": "side_room"},
     {"floor": 1, "door": "yellow", "key_at": "hall_2", "target_region": "vault_1"},
     {"floor": 1, "door": "yellow", "key_at": "hall_2", "target_region": "challenge"},
     {"floor": 1, "door": "blue", "key_at": "hall_4", "target_region": "vault_2"}
@@ -264,7 +399,9 @@ Valid door colors: `yellow`, `blue`, `red`, `green`
 
 ## Complete Example: Floor 1 Blueprint
 
-This example demonstrates all three requirements: 9 regions, 8 doors, 2 surprises.
+This example demonstrates all requirements: 9 regions, 8 doors (linear unlock), 2 surprises.
+
+**Critical:** Notice how each unlock step places the key in an already-accessible region.
 
 ```json
 {
@@ -278,9 +415,9 @@ This example demonstrates all three requirements: 9 regions, 8 doors, 2 surprise
       "name": "Entrance Hall",
       "layout": {"pattern": "simple_rooms", "room_count": 9},
       "regions": [
-        {"id": "entrance", "type": "entrance"},
+        {"id": "entrance", "type": "entrance", "content": {"items": ["yellow_key"]}},
         {"id": "corridor_1", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}}},
-        {"id": "corridor_2", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}, "items": ["yellow_key"]}},
+        {"id": "corridor_2", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}, "items": ["yellow_key", "yellow_key"]}},
         {"id": "corridor_3", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 3}}},
         {"id": "corridor_4", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}, "items": ["blue_key"]}},
         {"id": "side_chamber", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}}},
@@ -299,6 +436,7 @@ This example demonstrates all three requirements: 9 regions, 8 doors, 2 surprise
   ],
   "unlock_sequence": [
     {"floor": 1, "door": "yellow", "key_at": "entrance", "target_region": "corridor_1"},
+    {"floor": 1, "door": "yellow", "key_at": "entrance", "target_region": "corridor_2"},
     {"floor": 1, "door": "yellow", "key_at": "corridor_2", "target_region": "corridor_3"},
     {"floor": 1, "door": "yellow", "key_at": "corridor_2", "target_region": "corridor_4"},
     {"floor": 1, "door": "yellow", "key_at": "corridor_2", "target_region": "side_chamber"},
@@ -307,6 +445,15 @@ This example demonstrates all three requirements: 9 regions, 8 doors, 2 surprise
     {"floor": 1, "door": "yellow", "key_at": "treasury", "target_region": "guardian_room"}
   ]
 }
+```
+
+**Reachability Trace:**
+1. Player spawns in `entrance` → finds yellow_key
+2. Opens door to `corridor_1` (key was in entrance) ✓
+3. Opens door to `corridor_2` (key was in entrance) ✓ → finds more yellow_keys
+4. Opens doors to `corridor_3`, `corridor_4`, `side_chamber`, `treasury` (keys from corridor_2) ✓
+5. Opens door to `armory` (blue_key from corridor_4) ✓
+6. Opens door to `guardian_room` (yellow_key from treasury) ✓
 ```
 
 ## Playability Guidelines
