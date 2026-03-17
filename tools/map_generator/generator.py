@@ -74,6 +74,36 @@ def load_blueprint(filepath: str) -> Blueprint:
     return Blueprint.from_json_file(filepath)
 
 
+def get_region_tiles(
+    region_id: str,
+    rooms: list,
+    floor_tiles: set[tuple[int, int]],
+    all_regions: list
+) -> set[tuple[int, int]]:
+    """Get floor tiles that belong to a specific region."""
+    # If region matches a room id, use that room's tiles
+    for room in rooms:
+        if room.id == region_id:
+            return {t for t in floor_tiles if room.contains(t[0], t[1])}
+
+    # Otherwise, try to distribute tiles among regions based on room count
+    if not all_regions:
+        return floor_tiles
+
+    # Find the region index and assign proportional tiles
+    for i, region in enumerate(all_regions):
+        if region.id == region_id:
+            # Simple distribution: divide floor tiles among regions
+            tiles_list = list(floor_tiles)
+            region_count = len(all_regions)
+            tiles_per_region = len(tiles_list) // region_count
+            start_idx = i * tiles_per_region
+            end_idx = start_idx + tiles_per_region if i < region_count - 1 else len(tiles_list)
+            return set(tiles_list[start_idx:end_idx])
+
+    return floor_tiles
+
+
 @dataclass
 class MapGenerator:
     width: int = 25
@@ -86,6 +116,10 @@ class MapGenerator:
             raise ValueError(f"Invalid blueprint: {validation['errors']}")
         blueprint = Blueprint.from_dict(blueprint_data)
         maps = []
+
+        # Build floor lookup for cross-floor references
+        floor_lookup = {f.floor: f for f in blueprint.floors}
+
         for floor_bp in blueprint.floors:
             builder = LayoutBuilder(width=self.width, height=self.height, seed=self.seed)
             rooms = builder.generate_rooms(
@@ -93,14 +127,51 @@ class MapGenerator:
                 count=floor_bp.layout.room_count,
             )
             builder.carve_rooms(rooms)
+
+            # Connect rooms with passages
+            builder.connect_rooms(rooms)
+
             tiles = builder.get_tiles()
             floor_tiles = builder.get_floor_tiles()
             if not floor_tiles:
                 continue
-            start_pos = list(floor_tiles)[0]
+
+            # Determine start position (first room center or first floor tile)
+            if rooms:
+                start_pos = rooms[0].center
+            else:
+                start_pos = list(floor_tiles)[0]
+
             placer = EntityPlacer(floor_tiles, seed=self.seed)
+
+            # Track door positions for connectivity
+            door_positions: set[tuple[int, int]] = set()
+
+            # Track which regions have been processed for key placement
+            accessible_regions: set[str] = set()
+
+            # Process unlock_sequence for this floor
+            floor_unlock_steps = [
+                step for step in blueprint.unlock_sequence
+                if step.floor == floor_bp.floor
+            ]
+
+            # First pass: place content in regions without access requirements
             for region in floor_bp.regions:
-                region_tiles = {t for t in floor_tiles if t}
+                region_tiles = get_region_tiles(
+                    region.id, rooms, floor_tiles, floor_bp.regions
+                )
+
+                # Mark entrance as accessible
+                if region.type == "entrance":
+                    accessible_regions.add(region.id)
+
+                # Skip regions with access requirements for now
+                if region.access and region.access.requires:
+                    continue
+
+                accessible_regions.add(region.id)
+
                 if region.content:
                     if region.content.monsters:
                         tier = region.content.monsters.get("tier", 1)
@@ -109,12 +180,115 @@ class MapGenerator:
                     if region.content.items:
                         for item_id in region.content.items:
                             placer.place_in_region("item", item_id, region_tiles)
+
+            # Process unlock sequence: place doors and keys
+            for step in floor_unlock_steps:
+                # Find passage points to place door
+                door_placed = False
+
+                # Try to place door at a passage between rooms
+                for i, room1 in enumerate(rooms):
+                    for room2 in rooms[i+1:]:
+                        passages = builder.get_passages_between_rooms(room1, room2)
+                        for passage in passages:
+                            if passage not in door_positions and passage in floor_tiles:
+                                # Place door entity
+                                placer.place_entity_at("door", f"{step.door}_door", passage)
+                                door_positions.add(passage)
+                                door_placed = True
+                                break
+                        if door_placed:
+                            break
+                    if door_placed:
+                        break
+
+                # If no passage found, place door at a random floor tile near room boundary
+                if not door_placed and rooms:
+                    for room in rooms[1:]:  # Skip first room (usually entrance)
+                        boundary = builder.get_boundary_tiles(room)
+                        available = boundary & floor_tiles & placer.available_positions
+                        if available:
+                            pos = list(available)[0]
+                            placer.place_entity_at("door", f"{step.door}_door", pos)
+                            door_positions.add(pos)
+                            break
+
+                # Place key in the key_at region
+                key_region = step.key_at
+                key_tiles = get_region_tiles(key_region, rooms, floor_tiles, floor_bp.regions)
+
+                # Generate key item id from door color
+                key_id = f"{step.door}_key"
+                for _ in range(step.key_count):
+                    placer.place_in_region("item", key_id, key_tiles)
+
+            # Second pass: place content in regions with access requirements
+            for region in floor_bp.regions:
+                if not region.access or not region.access.requires:
+                    continue
+
+                region_tiles = get_region_tiles(
+                    region.id, rooms, floor_tiles, floor_bp.regions
+                )
+
+                if region.content:
+                    if region.content.monsters:
+                        tier = region.content.monsters.get("tier", 1)
+                        count = region.content.monsters.get("count", 1)
+                        placer.place_monsters_by_tier(tier, count, region_tiles)
+                    if region.content.items:
+                        for item_id in region.content.items:
+                            placer.place_in_region("item", item_id, region_tiles)
+
+            # Process shops
+            for shop_config in floor_bp.shops:
+                if shop_config.region:
+                    shop_tiles = get_region_tiles(
+                        shop_config.region, rooms, floor_tiles, floor_bp.regions
+                    )
+                else:
+                    shop_tiles = floor_tiles
+                placer.place_in_region("shop", shop_config.id, shop_tiles)
+
+            # Process surprises
+            for surprise in floor_bp.surprises:
+                if surprise.location:
+                    surprise_tiles = get_region_tiles(
+                        surprise.location, rooms, floor_tiles, floor_bp.regions
+                    )
+                else:
+                    surprise_tiles = floor_tiles
+
+                if surprise.type == "guardian" and surprise.guardian_tier:
+                    # Place guardian monster
+                    from tools.map_generator.entity_placer import get_monster_for_tier
+                    guardian_id = get_monster_for_tier(surprise.guardian_tier)
+                    placer.place_in_region("monster", guardian_id, surprise_tiles)
+
+                    # Place rewards
+                    if surprise.reward:
+                        for reward_id in surprise.reward:
+                            placer.place_in_region("item", reward_id, surprise_tiles)
+
+                elif surprise.type == "trap":
+                    # Place a trap monster (use tier 2-3 for traps)
+                    from tools.map_generator.entity_placer import get_monster_for_tier
+                    import random
+                    trap_tier = random.randint(2, 3)
+                    trap_monster = get_monster_for_tier(trap_tier)
+                    placer.place_in_region("monster", trap_monster, surprise_tiles)
+
+            # Place stairs
             stairs_up = None
             stairs_down = None
-            if floor_bp.floor > 1:
-                stairs_up = start_pos
-            if floor_bp.floor < 21:
-                stairs_down = list(floor_tiles)[-1] if len(floor_tiles) > 1 else None
+            if floor_bp.floor > 1 and rooms:
+                # Place stairs up in first room
+                stairs_up = rooms[0].center
+            if floor_bp.floor < 21 and len(rooms) > 1:
+                # Place stairs down in last room
+                stairs_down = rooms[-1].center
+
+            # Create output
             output = MapOutput(
                 level=floor_bp.floor,
                 name=floor_bp.name,
@@ -122,13 +296,18 @@ class MapGenerator:
                 tiles=tiles,
                 player_start=start_pos,
             )
+
+            # Add all entities
             for entity in placer.get_all_entities():
                 output.add_entity(entity.type, entity.id, entity.x, entity.y, entity.data)
+
             if stairs_up:
                 output.set_stairs_up(stairs_up)
             if stairs_down:
                 output.set_stairs_down(stairs_down)
+
             maps.append(output.to_dict())
+
         return maps
 
     def generate_and_save(self, blueprint_data: dict, output_dir: str) -> list[str]:

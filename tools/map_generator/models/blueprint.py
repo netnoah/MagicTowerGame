@@ -99,24 +99,40 @@ class UnlockStep:
 
 
 @dataclass
+class ShopConfig:
+    id: str
+    region: Optional[str] = None
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "ShopConfig":
+        return cls(
+            id=data["id"],
+            region=data.get("region"),
+        )
+
+
+@dataclass
 class FloorBlueprint:
     floor: int
     name: str
     layout: LayoutConfig
     regions: list[Region]
     surprises: list[Surprise] = field(default_factory=list)
+    shops: list[ShopConfig] = field(default_factory=list)
 
     @classmethod
     def from_dict(cls, data: dict) -> "FloorBlueprint":
         layout = LayoutConfig.from_dict(data["layout"])
         regions = [Region.from_dict(r) for r in data.get("regions", [])]
         surprises = [Surprise.from_dict(s) for s in data.get("surprises", [])]
+        shops = [ShopConfig.from_dict(s) for s in data.get("shops", [])]
         return cls(
             floor=data["floor"],
             name=data.get("name", f"Floor {data['floor']}"),
             layout=layout,
             regions=regions,
             surprises=surprises,
+            shops=shops,
         )
 
 

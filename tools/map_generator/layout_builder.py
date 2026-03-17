@@ -138,3 +138,94 @@ class LayoutBuilder:
             if room.contains(x, y):
                 return room
         return None
+
+    def get_boundary_tiles(self, room: Room) -> set[tuple[int, int]]:
+        """Get tiles at the boundary of a room that could be door positions."""
+        boundary = set()
+        for x, y in room.tiles():
+            # Check adjacent tiles - if any is a wall, this is a boundary
+            for dx, dy in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+                nx, ny = x + dx, y + dy
+                if not (0 <= nx < self.width and 0 <= ny < self.height):
+                    continue
+                if self._tiles[ny][nx] == self.TILE_WALL:
+                    boundary.add((x, y))
+                    break
+        return boundary
+    def get_passages_between_rooms(self, room1: Room, room2: Room) -> list[tuple[int, int]]:
+        """Find potential passage points (walls) between two adjacent rooms."""
+        passages = []
+        # Get boundaries of both rooms
+        boundary1 = self.get_boundary_tiles(room1)
+        boundary2 = self.get_boundary_tiles(room2)
+        # Find tiles that are close to each other (within 2 tiles)
+        for x1, y1 in boundary1:
+            for x2, y2 in boundary2:
+                if abs(x1 - x2) + abs(y1 - y2) <= 2:
+                    # Check if there's a wall between them
+                    mx, my = (x1 + x2) // 2, (y1 + y2) // 2
+                    if (0 <= mx < self.width and 0 <= my < self.height):
+                        if self._tiles[my][mx] == self.TILE_WALL:
+                            passages.append((mx, my))
+        return passages
+
+    def connect_rooms(self, rooms: list[Room]) -> list[tuple[int, int]]:
+        """Connect all rooms with passages. Returns list of passage positions."""
+        if len(rooms) < 2:
+            return []
+
+        passages = []
+        connected = {rooms[0].id}
+        unconnected = {r.id: r for r in rooms[1:]}
+
+        while unconnected:
+            best_passage = None
+            best_connected_room = None
+            best_distance = float('inf')
+
+            for connected_room in [r for r in rooms if r.id in connected]:
+                for room_id, room in unconnected.items():
+                    dist = abs(connected_room.center[0] - room.center[0]) + \
+                           abs(connected_room.center[1] - room.center[1])
+                    if dist < best_distance:
+                        room_passages = self.get_passages_between_rooms(connected_room, room)
+                        if room_passages:
+                            best_distance = dist
+                            best_passage = random.choice(room_passages) if room_passages else None
+                            best_connected_room = room_id
+
+            if best_passage and best_connected_room:
+                px, py = best_passage
+                self._tiles[py][px] = self.TILE_FLOOR
+                passages.append(best_passage)
+                connected.add(best_connected_room)
+                del unconnected[best_connected_room]
+            else:
+                # Force connect to nearest unconnected room
+                if unconnected:
+                    room_id = next(iter(unconnected))
+                    room = unconnected[room_id]
+                    # Find closest connected room and create passage
+                    for connected_room in [r for r in rooms if r.id in connected]:
+                        c1 = connected_room.center
+                        c2 = room.center
+                        # Carve a direct path
+                        x, y = c1
+                        tx, ty = c2
+                        while x != tx:
+                            x += 1 if tx > x else -1
+                            if 0 <= x < self.width and 0 <= y < self.height:
+                                if self._tiles[y][x] == self.TILE_WALL:
+                                    self._tiles[y][x] = self.TILE_FLOOR
+                                    passages.append((x, y))
+                        while y != ty:
+                            y += 1 if ty > y else -1
+                            if 0 <= x < self.width and 0 <= y < self.height:
+                                if self._tiles[y][x] == self.TILE_WALL:
+                                    self._tiles[y][x] = self.TILE_FLOOR
+                                    passages.append((x, y))
+                        connected.add(room_id)
+                        del unconnected[room_id]
+                        break
+
+        return passages

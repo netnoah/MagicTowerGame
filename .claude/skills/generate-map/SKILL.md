@@ -29,19 +29,21 @@ Generate valid and playable maps for Magic Tower RPG game using a hybrid approac
 - **Floor templates**: `.claude/skills/generate-map/templates/` (floors_1-5.json, etc.)
 - **Blueprint output**: `.temp/blueprint_*.json` (temporary working directory)
 
-## Known Limitations
+## Supported Features
 
-The current generator has incomplete implementation:
+The generator automatically handles:
 
-| Feature | Status | Workaround |
-|---------|--------|------------|
-| `unlock_sequence` | Not implemented | Manually add doors to map JSON |
-| `access.requires` | Not implemented | Manually design room connectivity |
-| `surprises` | Not implemented | Skip this field |
-| Door placement | Not implemented | Add doors manually after generation |
-| Shop placement | Not implemented | Add shops manually to entities |
-
-**Recommended workflow**: Generate base map with monsters/items, then manually add doors, shops, and stairs.
+| Feature | Description |
+|---------|-------------|
+| Room layout | Generates connected rooms with passages |
+| Monster placement | Places monsters by tier in regions |
+| Item placement | Distributes items across regions |
+| Door placement | Places doors based on `unlock_sequence` |
+| Key placement | Places keys in accessible regions |
+| Shop placement | Places shops in specified regions |
+| Surprise mechanics | Places guardians with rewards, traps |
+| Stairs | Auto-places stairs up/down between floors |
+| Connectivity | Ensures all rooms are connected |
 
 ## Hybrid Workflow
 
@@ -76,7 +78,12 @@ Create a blueprint JSON file describing the map intent:
         {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 3}}},
         {"id": "vault", "type": "treasure", "access": {"requires": "yellow_key"}, "content": {"items": ["red_gem"]}}
       ],
-      "surprises": []
+      "surprises": [
+        {"type": "guardian", "location": "main", "guardian_tier": 2, "reward": ["blue_key"]}
+      ],
+      "shops": [
+        {"id": "weapon_shop", "region": "start"}
+      ]
     }
   ],
   "unlock_sequence": [
@@ -89,7 +96,9 @@ Create a blueprint JSON file describing the map intent:
 - `regions`: Define areas with purpose (entrance, pathway, treasure, boss)
 - `access`: Lock regions behind keys/requirements
 - `content`: Specify monsters (tier, count) and items
-- `unlock_sequence`: Define the order players unlock doors
+- `unlock_sequence`: Define the order players unlock doors (places doors + keys)
+- `surprises`: Guardian encounters (monster + reward) or traps
+- `shops`: Place shop NPCs in regions
 
 ### Step 3: Run Python Generator
 
@@ -103,17 +112,16 @@ python -m tools.map_generator.generator \
   --verbose
 ```
 
-### Step 4: Verify and Complete Output
+### Step 4: Verify Output
 
-The generator produces:
-- Basic tile layout with rooms
-- Monsters and items placed on floor tiles
-
-**Manual completion required** (generator does NOT handle):
-- Door placement (add based on your `unlock_sequence`)
-- Shop placement
-- Stairs positioning (verify logic)
-- Room connectivity verification
+The generator produces complete maps with:
+- Connected room layout with passages
+- Monsters and items placed in regions
+- Doors placed at passage points (from unlock_sequence)
+- Keys placed in accessible regions
+- Shops positioned in specified regions
+- Surprise encounters with guardians/traps and rewards
+- Stairs for multi-floor navigation
 
 ## Blueprint Reference
 
@@ -146,6 +154,35 @@ The generator produces:
 | 5 | dragon_baby |
 | 6 | demon_lord |
 
+### Unlock Sequence
+
+Define door-key relationships:
+
+```json
+{
+  "floor": 1,
+  "door": "yellow",
+  "key_at": "start",
+  "target_region": "vault",
+  "key_count": 1
+}
+```
+
+Valid door colors: `yellow`, `blue`, `red`, `green`
+
+### Surprise Types
+
+| Type | Description | Fields |
+|------|-------------|--------|
+| `guardian` | Monster guarding loot | `guardian_tier`, `reward[]`, `location` |
+| `trap` | Hidden dangerous monster | `location` |
+
+### Shop Configuration
+
+```json
+{"id": "weapon_shop", "region": "start"}
+```
+
 ## Tile Type IDs
 
 | ID | Type | Description |
@@ -160,7 +197,7 @@ The generator produces:
 ```json
 {"type": "monster", "id": "<monster_id>", "x": <0-24>, "y": <0-18>, "data": {}}
 {"type": "item", "id": "<item_id>", "x": <0-24>, "y": <0-18>, "data": {}}
-{"type": "door", "id": "<color>", "x": <0-24>, "y": <0-18>, "data": {}}
+{"type": "door", "id": "<color>_door", "x": <0-24>, "y": <0-18>, "data": {}}
 {"type": "shop", "id": "<shop_id>", "x": <0-24>, "y": <0-18>, "data": {}}
 ```
 
@@ -183,12 +220,20 @@ cat > .temp/blueprint_f1-5.json << 'EOF'
       "layout": {"pattern": "simple_rooms", "room_count": 3},
       "regions": [
         {"id": "start", "type": "entrance"},
-        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 3}, "items": ["yellow_key"]}}
+        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 3}, "items": ["yellow_key"]}},
+        {"id": "vault", "type": "treasure", "access": {"requires": "yellow_key"}, "content": {"items": ["red_gem"]}}
       ],
-      "surprises": []
+      "surprises": [
+        {"type": "guardian", "location": "main", "guardian_tier": 2, "reward": ["blue_key"]}
+      ],
+      "shops": [
+        {"id": "potion_shop", "region": "start"}
+      ]
     }
   ],
-  "unlock_sequence": []
+  "unlock_sequence": [
+    {"floor": 1, "door": "yellow", "key_at": "start", "target_region": "vault"}
+  ]
 }
 EOF
 
@@ -205,3 +250,4 @@ ls -la data/maps/floor_01.json
 - **Economy**: Keys >= doors (slight surplus allows exploration)
 - **Risk/Reward**: High-tier monsters guard valuable items
 - **Connectivity**: All areas must be reachable after unlocking doors
+- **Progression**: Use unlock_sequence to create meaningful exploration flow
