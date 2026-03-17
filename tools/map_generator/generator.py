@@ -301,7 +301,7 @@ class MapGenerator:
                         # Position already occupied, skip this door
                         pass
 
-            # STEP 2: Now place content in regions without access requirements
+            # STEP 2: Place content in regions (EXCLUDING keys - keys placed in STEP 3)
             for region in floor_bp.regions:
                 region_tiles = get_region_tiles(
                     region.id, rooms, floor_tiles, floor_bp.regions
@@ -318,8 +318,12 @@ class MapGenerator:
                         tier = region.content.monsters.get("tier", 1)
                         count = region.content.monsters.get("count", 1)
                         placer.place_monsters_by_tier(tier, count, region_tiles)
+                    # IMPORTANT: Do NOT place keys from region.content.items
+                    # Keys are placed exclusively via unlock_sequence in STEP 3
                     if region.content.items:
-                        for item_id in region.content.items:
+                        # Filter out keys - only place non-key items
+                        non_key_items = [item for item in region.content.items if 'key' not in item.lower()]
+                        for item_id in non_key_items:
                             placer.place_in_region("item", item_id, region_tiles)
 
             # STEP 3: Place keys in accessible regions

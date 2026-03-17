@@ -112,6 +112,45 @@ Every floor MUST include at least 2 surprise elements. Surprise types:
 
 **Why this matters:** If a player spawns in an area that requires 2 keys to exit, but only has 1 key available in that area, they are deadlocked and cannot progress.
 
+### Requirement 5: Key Economy Balance (CRITICAL - Maintains Strategy)
+
+**Balance Rule:** Keys should be **just enough** to progress, not abundant. This maintains strategic decision-making.
+
+**Target ratios:**
+- **Minimum**: Keys ≥ Doors (prevent deadlock)
+- **Optimal**: Keys = Doors + 1~2 (slight surplus for exploration)
+- **Maximum**: Keys ≤ Doors × 1.3 (avoid trivializing puzzles)
+
+**Example for 8 doors:**
+- ✓ Good: 9-10 keys total (1.1-1.25 ratio)
+- ✗ Bad: 17 keys for 5 doors (3.4 ratio - no strategy)
+- ✗ Bad: 4 keys for 8 doors (0.5 ratio - deadlock)
+
+**Key placement strategy:**
+1. **Exact placement**: Each unlock_sequence entry places exactly 1 key
+2. **No bonus keys**: Don't add extra keys beyond unlock_sequence requirements
+3. **Challenge-reward**: Some keys require defeating monsters to reach
+
+**Implementation:**
+```json
+// CORRECT: 8 doors, 8 keys (1:1 ratio)
+{
+  "unlock_sequence": [
+    {"door": "yellow", "key_at": "entrance", "target_region": "hall_1"},
+    // ... 7 more entries
+  ]
+  // Total keys: 8 (exactly one per door)
+}
+
+// WRONG: Too many keys
+{
+  "regions": [
+    {"id": "entrance", "content": {"items": ["yellow_key", "yellow_key", "yellow_key"]}},
+    // Excess keys remove strategy
+  ]
+}
+```
+
 #### Linear Unlock Sequence Pattern
 
 Design unlock_sequence following a **linear progression** where each door's key is placed in an already-accessible region:
@@ -253,7 +292,7 @@ The `entrance` region MUST:
       "regions": [
         {"id": "entrance", "type": "entrance", "content": {"items": ["yellow_key"]}},
         {"id": "hall_1", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}}},
-        {"id": "hall_2", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}, "items": ["yellow_key", "yellow_key"]}},
+        {"id": "hall_2", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}, "items": ["yellow_key"]}},
         {"id": "hall_3", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 3}}},
         {"id": "hall_4", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}, "items": ["blue_key"]}},
         {"id": "side_room", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}}},
@@ -272,7 +311,7 @@ The `entrance` region MUST:
   ],
   "unlock_sequence": [
     {"floor": 1, "door": "yellow", "key_at": "entrance", "target_region": "hall_1"},
-    {"floor": 1, "door": "yellow", "key_at": "hall_1", "target_region": "hall_2"},
+    {"floor": 1, "door": "yellow", "key_at": "entrance", "target_region": "hall_2"},
     {"floor": 1, "door": "yellow", "key_at": "hall_2", "target_region": "hall_3"},
     {"floor": 1, "door": "yellow", "key_at": "hall_2", "target_region": "hall_4"},
     {"floor": 1, "door": "yellow", "key_at": "hall_2", "target_region": "side_room"},
@@ -403,6 +442,8 @@ This example demonstrates all requirements: 9 regions, 8 doors (linear unlock), 
 
 **Critical:** Notice how each unlock step places the key in an already-accessible region.
 
+**Key-Door Balance:** 8 doors require exactly 8 keys (1:1 ratio), creating strategic choices.
+
 ```json
 {
   "group": 1,
@@ -417,11 +458,11 @@ This example demonstrates all requirements: 9 regions, 8 doors (linear unlock), 
       "regions": [
         {"id": "entrance", "type": "entrance", "content": {"items": ["yellow_key"]}},
         {"id": "corridor_1", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}}},
-        {"id": "corridor_2", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}, "items": ["yellow_key", "yellow_key"]}},
+        {"id": "corridor_2", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}, "items": ["yellow_key"]}},
         {"id": "corridor_3", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 3}}},
         {"id": "corridor_4", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}, "items": ["blue_key"]}},
         {"id": "side_chamber", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 2}}},
-        {"id": "treasury", "type": "treasure", "access": {"requires": "yellow_key"}, "content": {"items": ["red_gem", "red_potion", "yellow_key"]}},
+        {"id": "treasury", "type": "treasure", "access": {"requires": "yellow_key"}, "content": {"items": ["red_gem", "red_potion"]}},
         {"id": "armory", "type": "treasure", "access": {"requires": "blue_key"}, "content": {"items": ["sword_1", "blue_gem"]}},
         {"id": "guardian_room", "type": "boss", "access": {"requires": "yellow_key"}, "content": {"items": ["shield_1", "red_key"]}}
       ],
@@ -447,13 +488,21 @@ This example demonstrates all requirements: 9 regions, 8 doors (linear unlock), 
 }
 ```
 
+**Key-Door Balance Analysis:**
+- **Total Doors**: 8
+- **Total Keys**: 8 (1:1 ratio)
+  - entrance: 1 yellow_key
+  - corridor_2: 1 yellow_key
+  - corridor_4: 1 blue_key
+  - treasury: 1 yellow_key (from surprise reward)
+- **Strategic Choices**: Player must decide which doors to open first with limited keys
+
 **Reachability Trace:**
-1. Player spawns in `entrance` → finds yellow_key
-2. Opens door to `corridor_1` (key was in entrance) ✓
-3. Opens door to `corridor_2` (key was in entrance) ✓ → finds more yellow_keys
-4. Opens doors to `corridor_3`, `corridor_4`, `side_chamber`, `treasury` (keys from corridor_2) ✓
-5. Opens door to `armory` (blue_key from corridor_4) ✓
-6. Opens door to `guardian_room` (yellow_key from treasury) ✓
+1. Player spawns in `entrance` → finds 1 yellow_key
+2. **Choice**: Open `corridor_1` OR `corridor_2`? (only 1 key available!)
+3. Opens `corridor_2` (better choice - has more keys) → finds 1 yellow_key
+4. **Strategy**: Now has keys for multiple paths - must prioritize
+5. Opens doors strategically based on reward priorities
 ```
 
 ## Playability Guidelines
