@@ -10,18 +10,67 @@
       "layout": {"pattern": "simple_rooms", "room_count": 4},
       "regions": [
         {"id": "start", "type": "entrance"},
-        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 2, "count": 5}},
-        {"id": "vault", "type": "treasure", "access": {"requires": "yellow_key"}
+        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 2, "count": 5}, "items": ["yellow_key", "blue_key"]}},
+        {"id": "vault", "type": "treasure", "access": {"requires": "blue_key"}, "content": {"items": ["red_gem", "blue_gem"]}}
       ],
       "surprises": [
-        {"type": "guardian", "location": "vault", "guardian_tier": 2, "reward": ["blue_key", "red_gem"]}
+        {"type": "guardian", "location": "vault", "guardian_tier": 2, "reward": ["red_key"]}
+      ]
+    },
+    {
+      "floor": 7,
+      "name": "Shadow Passage",
+      "layout": {"pattern": "cross", "room_count": 4},
+      "regions": [
+        {"id": "start", "type": "entrance"},
+        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 2, "count": 6}, "items": ["yellow_key", "red_potion"]}},
+        {"id": "vault", "type": "treasure", "access": {"requires": "yellow_key"}, "content": {"items": ["sword_2", "blue_key"]}}
+      ],
+      "surprises": []
+    },
+    {
+      "floor": 8,
+      "name": "Mystic Halls",
+      "layout": {"pattern": "simple_rooms", "room_count": 5},
+      "regions": [
+        {"id": "start", "type": "entrance"},
+        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 2, "count": 7}, "items": ["blue_key", "red_potion"]}},
+        {"id": "vault", "type": "treasure", "access": {"requires": "blue_key"}, "content": {"items": ["shield_2", "red_gem"]}}
+      ],
+      "surprises": [
+        {"type": "guardian", "location": "vault", "guardian_tier": 2, "reward": ["red_key"]}
+      ]
+    },
+    {
+      "floor": 9,
+      "name": "Danger Zone",
+      "layout": {"pattern": "cross", "room_count": 5},
+      "regions": [
+        {"id": "start", "type": "entrance"},
+        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 2, "count": 8}, "items": ["yellow_key", "blue_key", "red_potion"]}},
+        {"id": "vault", "type": "treasure", "access": {"requires": "red_key"}, "content": {"items": ["sword_3", "blue_gem"]}}
+      ],
+      "surprises": []
+    },
+    {
+      "floor": 10,
+      "name": "Midpoint Summit",
+      "layout": {"pattern": "cross", "room_count": 6},
+      "regions": [
+        {"id": "start", "type": "entrance"},
+        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 2, "count": 9}, "items": ["blue_key", "red_key", "red_potion"]}},
+        {"id": "vault", "type": "treasure", "access": {"requires": "red_key"}, "content": {"items": ["shield_3", "green_gem"]}}
+      ],
+      "surprises": [
+        {"type": "guardian", "location": "vault", "guardian_tier": 3, "reward": ["green_key"]}
       ]
     }
   ],
   "unlock_sequence": [
-    {"floor": 6, "door": "blue", "key_at": "start"},
-    {"floor": 7, "door": "yellow", "key_at": "start", "target_region": "main"},
-    {"floor": 8, "door": "blue", "key_at": "vault"},
-    {"floor": 9, "door": "red", "key_at": "start"}
+    {"floor": 6, "door": "blue", "key_at": "start", "target_region": "vault"},
+    {"floor": 7, "door": "yellow", "key_at": "start", "target_region": "vault"},
+    {"floor": 8, "door": "blue", "key_at": "main", "target_region": "vault"},
+    {"floor": 9, "door": "red", "key_at": "start", "target_region": "vault"},
+    {"floor": 10, "door": "red", "key_at": "main", "target_region": "vault"}
   ]
 }

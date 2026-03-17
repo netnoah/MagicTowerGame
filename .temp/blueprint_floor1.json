@@ -1,0 +1,61 @@
+{
+  "group": 1,
+  "floors_range": [1, 1],
+  "difficulty_tier": "easy",
+  "global_theme": "Tower Entrance",
+  "floors": [
+    {
+      "floor": 1,
+      "name": "Tower Entrance",
+      "layout": {"pattern": "simple_rooms", "room_count": 4},
+      "regions": [
+        {
+          "id": "entrance",
+          "type": "entrance",
+          "content": {"items": ["yellow_key"]}
+        },
+        {
+          "id": "main_hall",
+          "type": "pathway",
+          "content": {
+            "monsters": {"tier": 1, "count": 4},
+            "items": ["yellow_key", "yellow_key"]
+          }
+        },
+        {
+          "id": "east_wing",
+          "type": "treasure",
+          "access": {"requires": "yellow"},
+          "content": {
+            "monsters": {"tier": 1, "count": 2},
+            "items": ["sword_1", "red_potion"]
+          }
+        },
+        {
+          "id": "west_wing",
+          "type": "treasure",
+          "access": {"requires": "yellow"},
+          "content": {
+            "monsters": {"tier": 1, "count": 2},
+            "items": ["shield_1", "red_potion"]
+          }
+        },
+        {
+          "id": "armory",
+          "type": "treasure",
+          "access": {"requires": "yellow"},
+          "content": {
+            "monsters": {"tier": 1, "count": 2},
+            "items": ["red_gem", "blue_gem"]
+          }
+        }
+      ],
+      "surprises": []
+    }
+  ],
+  "unlock_sequence": [
+    {"floor": 1, "door": "yellow", "key_at": "entrance", "target_region": "east_wing"},
+    {"floor": 1, "door": "yellow", "key_at": "main_hall", "target_region": "west_wing"},
+    {"floor": 1, "door": "yellow", "key_at": "main_hall", "target_region": "armory"}
+  ]
+}

@@ -10,15 +10,63 @@
       "layout": {"pattern": "simple_rooms", "room_count": 3},
       "regions": [
         {"id": "start", "type": "entrance"},
-        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 3},        {"id": "vault", "type": "treasure", "access": {"requires": "yellow_key"},
+        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 3}, "items": ["yellow_key"]}},
+        {"id": "vault", "type": "treasure", "access": {"requires": "yellow_key"}, "content": {"items": ["red_gem", "red_potion"]}}
       ],
       "surprises": []
     },
-    "unlock_sequence": [
-      {"floor": 1, "door": "yellow", "key_at": "start"},
-      {"floor": 2, "door": "yellow", "key_at": "start", "target_region": "main"},
-      {"floor": 3, "door": "blue", "key_at": "vault"},
-      {"floor": 4, "door": "yellow", "key_at": "start"}
-    ]
+    {
+      "floor": 2,
+      "name": "First Steps",
+      "layout": {"pattern": "simple_rooms", "room_count": 3},
+      "regions": [
+        {"id": "start", "type": "entrance"},
+        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 4}, "items": ["yellow_key", "blue_key"]}},
+        {"id": "vault", "type": "treasure", "access": {"requires": "yellow_key"}, "content": {"items": ["blue_gem", "sword_1"]}}
+      ],
+      "surprises": []
+    },
+    {
+      "floor": 3,
+      "name": "Learning Curve",
+      "layout": {"pattern": "cross", "room_count": 4},
+      "regions": [
+        {"id": "start", "type": "entrance"},
+        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 5}, "items": ["yellow_key", "red_potion"]}},
+        {"id": "vault", "type": "treasure", "access": {"requires": "blue_key"}, "content": {"items": ["shield_1", "red_gem"]}}
+      ],
+      "surprises": []
+    },
+    {
+      "floor": 4,
+      "name": "Growing Stronger",
+      "layout": {"pattern": "simple_rooms", "room_count": 4},
+      "regions": [
+        {"id": "start", "type": "entrance"},
+        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 6}, "items": ["yellow_key", "blue_key"]}},
+        {"id": "vault", "type": "treasure", "access": {"requires": "yellow_key"}, "content": {"items": ["sword_2", "red_potion"]}}
+      ],
+      "surprises": []
+    },
+    {
+      "floor": 5,
+      "name": "First Trial",
+      "layout": {"pattern": "cross", "room_count": 5},
+      "regions": [
+        {"id": "start", "type": "entrance"},
+        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 1, "count": 7}, "items": ["yellow_key", "blue_key", "red_potion"]}},
+        {"id": "vault", "type": "treasure", "access": {"requires": "blue_key"}, "content": {"items": ["shield_2", "red_gem", "blue_gem"]}}
+      ],
+      "surprises": [
+        {"type": "guardian", "location": "vault", "guardian_tier": 1, "reward": ["red_key"]}
+      ]
+    }
+  ],
+  "unlock_sequence": [
+    {"floor": 1, "door": "yellow", "key_at": "start", "target_region": "vault"},
+    {"floor": 2, "door": "yellow", "key_at": "start", "target_region": "vault"},
+    {"floor": 3, "door": "blue", "key_at": "main", "target_region": "vault"},
+    {"floor": 4, "door": "yellow", "key_at": "start", "target_region": "vault"},
+    {"floor": 5, "door": "blue", "key_at": "main", "target_region": "vault"}
   ]
 }

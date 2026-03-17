@@ -26,6 +26,22 @@ Generate valid and playable maps for Magic Tower RPG game using a hybrid approac
 - **Entity configs**: `data/entities/` (items.json, monsters.json, shops.json)
 - **Map dimensions**: 25 (width) x 19 (height) tiles
 - **Generator tool**: `tools/map_generator/generator.py`
+- **Floor templates**: `.claude/skills/generate-map/templates/` (floors_1-5.json, etc.)
+- **Blueprint output**: `.temp/blueprint_*.json` (temporary working directory)
+
+## Known Limitations
+
+The current generator has incomplete implementation:
+
+| Feature | Status | Workaround |
+|---------|--------|------------|
+| `unlock_sequence` | Not implemented | Manually add doors to map JSON |
+| `access.requires` | Not implemented | Manually design room connectivity |
+| `surprises` | Not implemented | Skip this field |
+| Door placement | Not implemented | Add doors manually after generation |
+| Shop placement | Not implemented | Add shops manually to entities |
+
+**Recommended workflow**: Generate base map with monsters/items, then manually add doors, shops, and stairs.
 
 ## Hybrid Workflow
 
@@ -87,13 +103,17 @@ python -m tools.map_generator.generator \
   --verbose
 ```
 
-### Step 4: Verify Output
+### Step 4: Verify and Complete Output
 
-The generator guarantees:
-- All regions are reachable (connectivity tracking)
-- Entities placed on valid floor tiles
-- Door-key balance maintained
-- Stairs correctly placed
+The generator produces:
+- Basic tile layout with rooms
+- Monsters and items placed on floor tiles
+
+**Manual completion required** (generator does NOT handle):
+- Door placement (add based on your `unlock_sequence`)
+- Shop placement
+- Stairs positioning (verify logic)
+- Room connectivity verification
 
 ## Blueprint Reference
 

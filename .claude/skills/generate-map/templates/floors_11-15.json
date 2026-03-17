@@ -10,18 +10,67 @@
       "layout": {"pattern": "cross", "room_count": 5},
       "regions": [
         {"id": "start", "type": "entrance"},
-        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 3, "count": 6}},
-        {"id": "vault", "type": "treasure", "access": {"requires": "red_key"}}
+        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 3, "count": 6}, "items": ["yellow_key", "blue_key", "red_potion"]}},
+        {"id": "vault", "type": "treasure", "access": {"requires": "red_key"}, "content": {"items": ["sword_3", "blue_gem"]}}
       ],
       "surprises": [
         {"type": "guardian", "location": "vault", "guardian_tier": 3, "reward": ["red_key", "blue_gem"]}
       ]
+    },
+    {
+      "floor": 12,
+      "name": "Cursed Chambers",
+      "layout": {"pattern": "simple_rooms", "room_count": 5},
+      "regions": [
+        {"id": "start", "type": "entrance"},
+        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 3, "count": 7}, "items": ["blue_key", "red_potion"]}},
+        {"id": "vault", "type": "treasure", "access": {"requires": "blue_key"}, "content": {"items": ["shield_3", "red_gem"]}}
+      ],
+      "surprises": []
+    },
+    {
+      "floor": 13,
+      "name": "Beast's Den",
+      "layout": {"pattern": "cross", "room_count": 6},
+      "regions": [
+        {"id": "start", "type": "entrance"},
+        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 3, "count": 8}, "items": ["yellow_key", "red_key", "blue_potion"]}},
+        {"id": "vault", "type": "treasure", "access": {"requires": "red_key"}, "content": {"items": ["sword_4", "green_gem"]}}
+      ],
+      "surprises": [
+        {"type": "guardian", "location": "vault", "guardian_tier": 3, "reward": ["green_key"]}
+      ]
+    },
+    {
+      "floor": 14,
+      "name": "Terror Tower",
+      "layout": {"pattern": "cross", "room_count": 6},
+      "regions": [
+        {"id": "start", "type": "entrance"},
+        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 3, "count": 9}, "items": ["blue_key", "green_key", "blue_potion"]}},
+        {"id": "vault", "type": "treasure", "access": {"requires": "green_key"}, "content": {"items": ["shield_4", "brown_gem"]}}
+      ],
+      "surprises": []
+    },
+    {
+      "floor": 15,
+      "name": "Demon's Gate",
+      "layout": {"pattern": "cross", "room_count": 7},
+      "regions": [
+        {"id": "start", "type": "entrance"},
+        {"id": "main", "type": "pathway", "content": {"monsters": {"tier": 4, "count": 10}, "items": ["red_key", "green_key", "blue_potion"]}},
+        {"id": "vault", "type": "treasure", "access": {"requires": "green_key"}, "content": {"items": ["sword_4", "shield_4", "brown_gem"]}}
+      ],
+      "surprises": [
+        {"type": "guardian", "location": "vault", "guardian_tier": 4, "reward": ["red_key", "green_key"]}
+      ]
     }
   ],
   "unlock_sequence": [
-    {"floor": 11, "door": "yellow", "key_at": "start"},
-    {"floor": 12, "door": "blue", "key_at": "main"},
-    {"floor": 13, "door": "red", "key_at": "vault"},
-    {"floor": 14, "door": "green", "key_at": "start"}
+    {"floor": 11, "door": "yellow", "key_at": "start", "target_region": "main"},
+    {"floor": 12, "door": "blue", "key_at": "main", "target_region": "vault"},
+    {"floor": 13, "door": "red", "key_at": "main", "target_region": "vault"},
+    {"floor": 14, "door": "green", "key_at": "start", "target_region": "vault"},
+    {"floor": 15, "door": "green", "key_at": "main", "target_region": "vault"}
   ]
 }
