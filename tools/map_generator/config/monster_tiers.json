@@ -1,0 +1,20 @@
+{
+  "tiers": {
+    "1": ["slime_green", "slime_red", "bat"],
+    "2": ["skeleton", "ghost"],
+    "3": ["orc", "wizard"],
+    "4": ["knight"],
+    "5": ["dragon_baby"],
+    "6": ["demon_lord"]
+  },
+  "tier_variance": {
+    "easy": {"min_offset": 0, "max_offset": 0},
+    "normal": {"min_offset": -1, "max_offset": 1},
+    "hard": {"min_offset": -1, "max_offset": 2}
+  },
+  "guardian_tiers": {
+    "easy": {"min": 2, "max": 3},
+    "normal": {"min": 3, "max": 5},
+    "hard": {"min": 4, "max": 6}
+  }
+}
